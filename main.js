@@ -106,10 +106,14 @@ function sendToBack(win, cb) {   // pencereyi z-sırasının en altına (masaüs
 function openVisualizer() {
   if (visualizer) {   // tekrar seçince: ters animasyonla kapat
     const v = visualizer;
-    if (v._closing) return;
+    if (v._closing) {   // kapanırken tekrar basıldı: kapanmayı iptal et, geri aç
+      clearTimeout(v._closeT); v._closing = false;
+      v.webContents.send('reveal'); sendState();
+      return;
+    }
     v._closing = true;
     v.webContents.send('unreveal'); sendState();
-    setTimeout(() => { if (!v.isDestroyed()) v.close(); }, 750);
+    v._closeT = setTimeout(() => { if (!v.isDestroyed()) { v.destroy(); } }, 750);
     return;
   }
   const d = widget ? screen.getDisplayMatching(widget.getBounds()) : screen.getPrimaryDisplay();
