@@ -355,7 +355,7 @@ function layoutArc() {
   let y0 = null, t0 = 0, hov = null, btn = 0;   // sol tık = sadece seçim; basılı sürükleyerek kaydırma yalnızca orta tuşla
   const onDisc = (x, y) => { const r = $('disc').getBoundingClientRect(); return Math.hypot(x - r.left - r.width / 2, y - r.top - r.height / 2) <= r.width / 2; };
   hit.addEventListener('mousedown', e => { if (e.button === 1) e.preventDefault(); });   // orta tuş otomatik kaydırma ikonu çıkmasın
-  hit.addEventListener('pointerdown', e => { if (e.button > 1) return; btn = e.button; cancelBack(); y0 = e.clientY; t0 = arcTarget; arcMoved = false; hit.setPointerCapture(e.pointerId); });
+  hit.addEventListener('pointerdown', e => { if (e.button > 1) return; hit.classList.add('active'); btn = e.button; cancelBack(); y0 = e.clientY; t0 = arcTarget; arcMoved = false; hit.setPointerCapture(e.pointerId); });
   hit.addEventListener('pointermove', e => {
     if (y0 !== null) {
       const dy = e.clientY - y0; if (btn === 1 && Math.abs(dy) > 6) arcMoved = true;
@@ -366,6 +366,7 @@ function layoutArc() {
     hit.style.cursor = y0 !== null && arcMoved ? 'grabbing' : (li && li.id !== 'nowitem') || (!li && onDisc(e.clientX, e.clientY)) ? 'pointer' : 'default';
   });
   const end = e => {
+    hit.classList.remove('active');
     if (y0 === null) return; y0 = null;
     arcTarget = Math.round(arcTarget);
     if (arcMoved) scheduleBack();
@@ -377,7 +378,7 @@ function layoutArc() {
     arcMoved = false;
   };
   hit.addEventListener('pointerup', end);
-  hit.addEventListener('pointercancel', () => { scheduleBack(); y0 = null; arcMoved = false; arcTarget = Math.round(arcTarget); });
+  hit.addEventListener('pointercancel', () => { hit.classList.remove('active'); scheduleBack(); y0 = null; arcMoved = false; arcTarget = Math.round(arcTarget); });
   hit.addEventListener('pointerleave', () => { hov?.classList.remove('hover'); hov = null; });
 }
 // Spotify'da "kuyruktaki şarkıya atla" yok: hedefe kadar next'e basıyoruz (bağlam korunur)
@@ -631,7 +632,7 @@ if (WIDGET) {
   };
   addEventListener('mousemove', e => update(e.clientX, e.clientY));
   // tıklanabilir alanları ana sürece bildir; o imleci kendisi izleyip tıklama-geçirmeyi açar/kapatır
-  const HIT = '#disc, #arcHit, #player, #volpop, #controls button, #msg, #mini, #minBtn';
+  const HIT = '#disc, #arcHit.active, #queue li:not(.ghost), #player, #volpop, #controls button, #msg, #mini, #minBtn';
   const ALWAYS = ['minBtn'];   // görünmezken de yeri tıklanabilir (üstüne gelince belirir)
   let lastRects = '';
   setInterval(() => {
@@ -639,11 +640,11 @@ if (WIDGET) {
     document.querySelectorAll(HIT).forEach(el => {
       if (!el.offsetParent && getComputedStyle(el).position !== 'fixed') return;
       const cs = getComputedStyle(el);
-      if (cs.visibility === 'hidden' || cs.pointerEvents === 'none' || cs.display === 'none') return;
-      if (+cs.opacity < .05 && !ALWAYS.includes(el.id)) return;
+      if (cs.visibility === 'hidden' || (cs.pointerEvents === 'none' && el.tagName !== 'LI') || cs.display === 'none') return;
+      if (+cs.opacity < (el.tagName === 'LI' ? .3 : .05) && !ALWAYS.includes(el.id)) return;
       if (el.closest('[hidden]')) return;
       const r = el.getBoundingClientRect(); if (!r.width || !r.height) return;
-      rects.push([Math.round(r.left), Math.round(r.top), Math.round(r.width), Math.round(r.height), el.id === 'disc' || el.id === 'mini' ? 1 : 0, el.id]);
+      rects.push([Math.round(r.left), Math.round(r.top), Math.round(r.width), Math.round(r.height), el.id === 'disc' || el.id === 'mini' ? 1 : 0, el.id || el.tagName.toLowerCase()]);
     });
     const k = JSON.stringify(rects);
     if (k !== lastRects) { lastRects = k; window.widget?.setHitRects?.(rects); }
