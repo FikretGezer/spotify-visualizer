@@ -192,6 +192,7 @@ if (WIDGET) for (const id of ['disc', 'mini']) {
 
 // ---------- Ayarlar (tepsi → sağ tık) ----------
 let smoothK = .12, backK = .04, returning = false, backDelayMs = 3000, justDragged = false;
+let vizClear = false;
 function applySettings(c) {
   if (!c) return;
   const st = document.documentElement.style;
@@ -199,6 +200,8 @@ function applySettings(c) {
   st.setProperty('--bgop', (c.bgOpacity ?? 90) / 100);
   st.setProperty('--glowop', (c.glow ?? 100) / 100);
   st.setProperty('--wop', (c.opacity ?? 100) / 100);
+  vizClear = !!c.vizClear; document.body.classList.toggle('vclear', vizClear);
+  st.setProperty('--shade', (c.vizShade ?? 70) / 100);
   if (!WIDGET) {   // visualizer: animasyon seçimi + otomatik değiştirme (ayarlardan)
     if (c.vizMode && c.vizMode !== mode && MODES[c.vizMode]) setMode(c.vizMode);
     clearInterval(window._vizCyc);
@@ -564,7 +567,11 @@ function frame(now) {
   sb += (b - sb) * .3; sm += (m - sm) * .15; st += (tr - st) * .2;
   rot += .002 + sm * .01;
   if (!WIDGET) {
-    g.fillStyle = mode === 'Spektrum' ? 'rgba(0,0,0,.35)' : 'rgba(0,0,0,.18)'; g.fillRect(0, 0, W, H);
+    if (vizClear) {   // şeffaf mod: iz bırakarak saydamlığa doğru sil (duvar kağıdı görünsün)
+      g.globalCompositeOperation = 'destination-out';
+      g.fillStyle = mode === 'Spektrum' ? 'rgba(0,0,0,.45)' : 'rgba(0,0,0,.22)'; g.fillRect(0, 0, W, H);
+      g.globalCompositeOperation = 'source-over';
+    } else { g.fillStyle = mode === 'Spektrum' ? 'rgba(0,0,0,.35)' : 'rgba(0,0,0,.18)'; g.fillRect(0, 0, W, H); }
     MODES[mode](t, palette, W / 2, H / 2, Math.min(W, H) * (BG ? VIZ_K : 1));
   }
   layoutArc();
@@ -682,15 +689,21 @@ if (BG) {
     });
     lineT0 = lyr[i]?.t ?? 0; lineT1 = Math.min(lyr[i + 1]?.t ?? lineT0 + 4000, lineT0 + 6000);
   };
-  const place = () => {   // halkanın soluna, dikeyde ortasına hizala
-    const m = Math.min(innerWidth, innerHeight);
-    box.style.right = (innerWidth / 2 + m * VIZ_K * .3) + 'px';
-    box.style.maxWidth = (innerWidth / 2 - m * VIZ_K * .3 - innerWidth * .06) + 'px';
+  let placedFor = '';
+  const place = () => {   // sözlerin yeri animasyona göre: halka/galakside solda, spektrum/dalgada üstte ortada
+    placedFor = mode + innerWidth;
+    const m = Math.min(innerWidth, innerHeight), side = mode === 'Halka' || mode === 'Galaksi', st = box.style;
+    box.classList.toggle('top', !side);
+    if (side) {
+      const gap = m * VIZ_K * (mode === 'Galaksi' ? .55 : .3);
+      st.left = 'auto'; st.right = (innerWidth / 2 + gap) + 'px'; st.top = '50%'; st.maxWidth = (innerWidth / 2 - gap - innerWidth * .06) + 'px';
+    } else { st.right = 'auto'; st.left = '50%'; st.top = (mode === 'Spektrum' ? 13 : 16) + '%'; st.maxWidth = '70vw'; }
   };
-  place(); addEventListener('resize', place);
+  addEventListener('resize', place);
   const tick = () => {
     const on = lyrOn && lyr.length > 0;
     box.classList.toggle('on', on);
+    if (placedFor !== mode + innerWidth) place();
     if (on) {
       const pos = curPos() + 200;
       let i = -1; for (let k = 0; k < lyr.length && lyr[k].t <= pos; k++) i = k;

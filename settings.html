@@ -141,6 +141,12 @@
         <div class="ico">🎤</div><div class="lbl"><b>Şarkı sözleri</b><small>Varsa sözler müzikle senkron görünsün</small></div>
         <label class="tg"><input type="checkbox" data-k="lyrics"><span></span></label>
       </div>
+      <div class="row">
+        <div class="ico">🖼️</div><div class="lbl"><b>Şeffaf arka plan</b><small>Kendi duvar kağıdın görünsün, ortası gölgeli</small></div>
+        <label class="tg"><input type="checkbox" data-k="vizClear"><span></span></label>
+      </div>
+      <div class="row col"><div class="top"><div class="ico">🌑</div><div class="lbl"><b>Merkez gölgesi</b><small>Şeffaf modda ortadaki karanlık · kenarlara doğru sıfıra iner</small></div></div>
+        <div class="sl"><input type="range" data-k="vizShade" min="0" max="100" step="5"><output data-o="vizShade"></output></div></div>
       <div class="row col"><div class="top"><div class="ico">🔁</div><div class="lbl"><b>Otomatik değiştir</b><small>Animasyonlar sırayla dönsün · 0 = kapalı</small></div></div>
         <div class="sl"><input type="range" data-k="vizCycle" min="0" max="120" step="5"><output data-o="vizCycle"></output></div></div>
     </section>
@@ -168,6 +174,7 @@
     opacity: v => v + '%',
     edgeSoft: v => v + 'px',
     dockDelay: v => (+v).toFixed(1) + ' sn',
+    vizShade: v => v + '%',
     vizCycle: v => +v === 0 ? 'Kapalı' : v + ' sn',
     backSpeed: v => v,
   };

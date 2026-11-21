@@ -77,6 +77,7 @@ Masaüstünde yüzen bir Spotify widget'ı. Ortada çalan şarkının kapağıyl
   - Diskten büyüyen bir daireyle açılır, aynı şekilde kapanır.
   - Açılırken öndeki pencerelerin önüne geçmez, arkada kalır.
   - Animasyonlar: **Halka, Spektrum, Dalga, Galaksi.** İstersen belirli aralıklarla otomatik değişir.
+  - İki arka plan: düz siyah ya da şeffaf. Şeffaf modda duvar kağıdın görünür, ortadaki gölge kenarlara doğru sıfıra iner (ayarlanabilir).
   - Varsa şarkı sözleri müzikle senkron görünür (LRCLIB). Ayarlardan kapatılabilir.
 - **Ayarlar penceresi:** Tüm ayarlar `%APPDATA%\spotify-visualizer\settings.json` dosyasına otomatik kaydedilir.
 

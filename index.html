@@ -195,6 +195,13 @@ body.bg #lyrics{display:block;position:fixed;top:50%;transform:translateY(-50%);
   font-family:'Segoe UI Variable Display','Segoe UI',sans-serif;font-weight:800;font-size:clamp(30px,3.3vw,64px);line-height:1.05;letter-spacing:-.01em;
   color:#fff;opacity:0;transition:opacity .8s ease;text-shadow:0 0 22px var(--glow,#ffffff40),0 4px 18px #000c}
 body.bg.shown #lyrics.on{opacity:1}
+body.bg #lyrics.top{transform:translate(-50%,0)}
+/* şeffaf mod: ortadan kenarlara doğru azalan gölge, duvar kağıdı görünür */
+body.bg.vclear::before{content:'';position:fixed;inset:0;pointer-events:none;
+  background:radial-gradient(circle at 50% 50%,rgba(0,0,0,var(--shade,.7)) 0%,rgba(0,0,0,calc(var(--shade,.7) * .55)) 30%,rgba(0,0,0,0) 72%);
+  clip-path:circle(0% at var(--rx,50%) var(--ry,50%));transition:clip-path 1s cubic-bezier(.7,0,.2,1)}
+body.bg.vclear.shown::before{clip-path:circle(150% at var(--rx,50%) var(--ry,50%))}
+body.bg.vclear.hiding::before{transition:clip-path .7s cubic-bezier(.6,0,.4,1)}
 body.bg #lyrics.out{opacity:0!important;transition:opacity .2s ease}
 #lyrics .w{display:inline-block;opacity:0;transform:translateY(.25em) scale(.92);filter:blur(4px);transition:opacity .35s ease,transform .45s cubic-bezier(.2,1.2,.4,1),filter .35s ease}
 #lyrics .w.sm{font-size:.6em;font-weight:700}
