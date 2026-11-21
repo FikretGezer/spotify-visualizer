@@ -65,6 +65,9 @@
   .disp.on .mon::after{opacity:1;box-shadow:0 0 8px var(--acc)}
   .disp b{display:block;font-size:12.5px} .disp small{font-size:10.5px;color:var(--mut)}
   /* animasyon seçimi */
+  .pv{position:relative;margin-top:10px;height:118px;border-radius:14px;overflow:hidden;border:1px solid var(--line);background:#05050a}
+  .pv canvas{width:100%;height:100%;display:block}
+  .pv span{position:absolute;left:10px;bottom:7px;font-size:10px;font-weight:700;letter-spacing:.06em;color:#ffffffb0;text-transform:uppercase;transition:opacity .2s}
   .modes{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:10px 0 4px}
   .mode{border:1px solid var(--line);background:#ffffff0b;color:#fff;border-radius:12px;padding:10px;font:600 13px inherit;font-family:inherit;cursor:pointer;transition:.2s}
   .mode:hover{background:#ffffff1a;transform:translateY(-1px)}
@@ -148,7 +151,7 @@
     <section>
       <h2>Visualizer</h2>
       <div class="row col"><div class="top"><div class="ico">🌌</div><div class="lbl"><b>Animasyon</b><small>Arka plan visualizer'da hangisi oynasın</small></div></div>
-        <div class="modes" id="vizModes"></div></div>
+        <div class="pv"><canvas id="pv"></canvas><span id="pvName"></span></div><div class="modes" id="vizModes"></div></div>
       <div class="row">
         <div class="ico">🎤</div><div class="lbl"><b>Şarkı sözleri</b><small>Varsa sözler müzikle senkron görünsün</small></div>
         <label class="tg"><input type="checkbox" data-k="lyrics"><span></span></label>
@@ -196,12 +199,54 @@
     const o = document.querySelector(`[data-o="${el.dataset.k}"]`); if (o) o.textContent = FMT[el.dataset.k](el.value);
   }
   const MODES = { 'Halka': '⭕ Halka', 'Spektrum': '📊 Spektrum', 'Dalga': '〰️ Dalga', 'Galaksi': '🌀 Galaksi' };
+  // mini ön izleme: seçili animasyon, üstüne gelinen butonun animasyonu
+  let pvCur = 'Halka', pvMode = 'Halka', pvFade = 1;
+  const pc = document.getElementById('pv'), px = pc.getContext('2d');
+  function pvShow(k) { const m = k || pvCur; if (m !== pvMode) { pvMode = m; pvFade = 0; } document.getElementById('pvName').textContent = (k ? 'Ön izleme · ' : '') + m; }
+  const C1 = [29,185,84], C2 = [140,90,255], C3 = [255,90,160], rg = (c, a) => `rgba(${c},${a})`;
+  const band = (u, t) => Math.max(0, .35 + .3 * Math.sin(u * 9 + t * 3.1) * Math.sin(t * 1.7 + u * 3) + .25 * Math.sin(t * 6.3 + u * 20) * (1 - u));
+  const pts = Array.from({ length: 160 }, () => ({ a: Math.random() * 6.28, r: Math.random(), s: .5 + Math.random() }));
+  function pvFrame(now) {
+    const t = now / 1000, dpr = devicePixelRatio || 1, W = pc.clientWidth * dpr, H = pc.clientHeight * dpr;
+    if (pc.width !== W) { pc.width = W; pc.height = H; }
+    pvFade = Math.min(1, pvFade + .06);
+    px.fillStyle = `rgba(5,5,10,${pvFade < 1 ? .5 : .25})`; px.fillRect(0, 0, W, H);
+    const cx = W / 2, cy = H / 2, R = H * .9, beat = .5 + .5 * Math.sin(t * 4.2) ** 8;
+    px.globalAlpha = pvFade;
+    if (pvMode === 'Halka') {
+      const base = R * .2 * (1 + beat * .08), N = 72;
+      px.save(); px.translate(cx, cy); px.rotate(t * .3); px.lineCap = 'round'; px.lineWidth = 1.6 * dpr;
+      for (let i = 0; i < N; i++) { const a = i / N * 6.28, l = base * .2 + band(i < N / 2 ? i / (N / 2) : (N - i) / (N / 2), t) * R * .25;
+        px.strokeStyle = rg(i % 2 ? C2 : C3, .9); px.beginPath(); px.moveTo(Math.cos(a) * base, Math.sin(a) * base); px.lineTo(Math.cos(a) * (base + l), Math.sin(a) * (base + l)); px.stroke(); }
+      px.restore(); px.beginPath(); px.arc(cx, cy, base * .9, 0, 6.28); px.fillStyle = rg(C1, .9); px.fill();
+    } else if (pvMode === 'Spektrum') {
+      const N = 32, bw = W / N, g = px.createLinearGradient(0, H, 0, 0); g.addColorStop(0, rg(C1, 1)); g.addColorStop(.6, rg(C2, 1)); g.addColorStop(1, rg(C3, 1)); px.fillStyle = g;
+      for (let i = 0; i < N; i++) { const h = band(i / N, t) * H * .85 + 2; px.fillRect(i * bw + bw * .18, H - h, bw * .64, h); }
+    } else if (pvMode === 'Dalga') {
+      px.lineWidth = 2 * dpr; px.shadowBlur = 10 * dpr;
+      for (const [c, amp, ph] of [[C1, 1, 0], [C2, .7, .6], [C3, .5, 1.2]]) {
+        px.strokeStyle = rg(c, .9); px.shadowColor = rg(c, 1); px.beginPath();
+        for (let x = 0; x <= W; x += 4) { const u = x / W, y = cy + Math.sin(u * 12 + t * 2.4 + ph) * (.35 + beat * .4) * Math.sin(u * Math.PI) * H * .4 * amp; x ? px.lineTo(x, y) : px.moveTo(x, y); }
+        px.stroke(); }
+      px.shadowBlur = 0;
+    } else {
+      for (const p of pts) { p.r += .004 * p.s * (1 + beat * 3); if (p.r > 1) { p.r = 0; p.a = Math.random() * 6.28; }
+        const a = p.a + t * .5 + p.r * 2.5, d = p.r * W * .55;
+        px.fillStyle = rg([C1, C2, C3][(p.s * 3 | 0) % 3], 1 - p.r); px.beginPath(); px.arc(cx + Math.cos(a) * d, cy + Math.sin(a) * d * .45, (1 + beat) * dpr, 0, 6.28); px.fill(); }
+      const g = px.createRadialGradient(cx, cy, 0, cx, cy, H * .35); g.addColorStop(0, rg(C3, .5 + beat * .3)); g.addColorStop(1, 'rgba(0,0,0,0)'); px.fillStyle = g; px.fillRect(0, 0, W, H);
+    }
+    px.globalAlpha = 1;
+    requestAnimationFrame(pvFrame);
+  }
+  requestAnimationFrame(pvFrame);
   async function init() {
     const cfg = await api.get();
+    pvCur = cfg.vizMode || 'Halka'; pvShow(null);
     const vm = document.getElementById('vizModes'); vm.innerHTML = '';
     for (const [k, label] of Object.entries(MODES)) {
       const b = document.createElement('button'); b.className = 'mode' + ((cfg.vizMode || 'Halka') === k ? ' on' : ''); b.textContent = label;
-      b.onclick = () => { api.set('vizMode', k); vm.querySelectorAll('.mode').forEach(x => x.classList.remove('on')); b.classList.add('on'); };
+      b.onmouseenter = () => pvShow(k); b.onmouseleave = () => pvShow(null);
+      b.onclick = () => { pvCur = k; api.set('vizMode', k); vm.querySelectorAll('.mode').forEach(x => x.classList.remove('on')); b.classList.add('on'); };
       vm.append(b);
     }
     document.querySelectorAll('[data-k]').forEach(el => {
