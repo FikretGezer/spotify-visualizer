@@ -298,6 +298,14 @@ app.whenReady().then(async () => {
       if (k === 1) { clearInterval(fitT); cfg.pos = { x: wb.x + dx, y: wb.y + dy + wb.height }; saveCfg(cfg); }
     }, 12);
   });
+  // diske sağ tık: hızlı menü
+  ipcMain.on('ctxmenu', () => {
+    if (!widget) return;
+    Menu.buildFromTemplate([
+      { label: visualizer ? "Visualizer'ı kapat" : "Visualizer'ı aç", click: openVisualizer },
+      { label: 'Ayarlar', click: openSettings },
+    ]).popup({ window: widget });
+  });
   ipcMain.on('interactive', (e, on) => {
     const w = BrowserWindow.fromWebContents(e.sender);
     if (w) w.setIgnoreMouseEvents(!on, { forward: true });

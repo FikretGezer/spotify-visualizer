@@ -654,3 +654,6 @@ $('fs').onclick = () => document.fullscreenElement ? document.exitFullscreen() :
   await poll(); setInterval(poll, 3000);
   requestAnimationFrame(frame);
 })();
+
+// diske / mini'ye sağ tık → visualizer menüsü
+if (WIDGET) for (const id of ['disc', 'mini']) document.getElementById(id)?.addEventListener('contextmenu', e => { e.preventDefault(); e.stopPropagation(); window.widget?.contextMenu?.(); });

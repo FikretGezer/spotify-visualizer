@@ -48,7 +48,7 @@ A floating Spotify widget for your desktop. The cover of the current track spins
 | Show / hide | Single-click the tray icon (with a fade) |
 | Settings | Double-click the tray icon |
 | Menu | Right-click the tray icon |
-| Visualizer | Toggle from the tray menu or settings |
+| Visualizer | Right-click the disc, or use the tray menu or settings |
 
 ## Features
 

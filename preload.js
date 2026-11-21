@@ -19,6 +19,7 @@ contextBridge.exposeInMainWorld('widget', {
   dragEnd: () => ipcRenderer.invoke('drag:end'),
   onReveal: cb => ipcRenderer.on('reveal', () => cb(true)),
   onUnreveal: cb => ipcRenderer.on('unreveal', () => cb(false)),
+  contextMenu: () => ipcRenderer.send('ctxmenu'),
   onSettings: cb => ipcRenderer.on('settings:changed', (_e, cfg) => cb(cfg)),
 });
 

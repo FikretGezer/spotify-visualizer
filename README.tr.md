@@ -48,7 +48,7 @@ Masaüstünde yüzen bir Spotify widget'ı. Ortada çalan şarkının kapağıyl
 | Göster / gizle | Tepsi simgesine tek tık (yumuşak geçişle) |
 | Ayarlar | Tepsi simgesine çift tık |
 | Menü | Tepsi simgesine sağ tık |
-| Visualizer | Tepsi menüsünden ya da ayarlardan aç/kapat |
+| Visualizer | Diske sağ tıkla, ya da tepsi menüsü veya ayarlar |
 
 ## Özellikler
 
