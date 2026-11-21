@@ -29,5 +29,6 @@ contextBridge.exposeInMainWorld('settings', {
   set: (k, v) => ipcRenderer.send('settings:set', k, v),
   displays: () => ipcRenderer.invoke('settings:displays'),
   action: a => ipcRenderer.send('settings:action', a),
+  onState: cb => ipcRenderer.on('settings:state', (_e, s) => cb(s)),
   onRefresh: cb => ipcRenderer.on('settings:refresh', () => cb()),
 });

@@ -108,7 +108,7 @@ function openVisualizer() {
     const v = visualizer;
     if (v._closing) return;
     v._closing = true;
-    v.webContents.send('unreveal');
+    v.webContents.send('unreveal'); sendState();
     setTimeout(() => { if (!v.isDestroyed()) v.close(); }, 750);
     return;
   }
@@ -129,26 +129,34 @@ function openVisualizer() {
       if (v.isDestroyed()) return;
       v.setOpacity(1);
       v.webContents.send('reveal');
-      widget && widget.moveTop();
+      widget && widget.moveTop(); settingsWin && settingsWin.moveTop();
     });
   });
-  v.on('closed', () => { if (visualizer === v) visualizer = null; });
+  v.on('closed', () => { if (visualizer === v) visualizer = null; sendState(); });
+  sendState();
 }
 
 // ---------- Ayarlar penceresi (tepsi simgesine sağ tık) ----------
 let settingsWin = null;
+// ayarlar penceresine widget / visualizer açık mı bilgisini gönder
+function sendState() {
+  if (!settingsWin) return;
+  settingsWin.webContents.send('settings:state', { widget: !!(widget && widget.isVisible() && !widget._hiding), viz: !!(visualizer && !visualizer._closing) });
+}
 function openSettings() {
-  if (settingsWin) { settingsWin.webContents.send('settings:refresh'); settingsWin.show(); settingsWin.focus(); return; }
+  if (settingsWin) { settingsWin.webContents.send('settings:refresh'); settingsWin.show(); settingsWin.moveTop(); settingsWin.focus(); sendState(); return; }
   const W = 420, H = 680;
   const pt = screen.getCursorScreenPoint(), wa = screen.getDisplayNearestPoint(pt).workArea;
   settingsWin = new BrowserWindow({
     width: W, height: H, x: Math.min(pt.x - W / 2, wa.x + wa.width - W) | 0, y: wa.y + wa.height - H,
-    frame: false, transparent: true, resizable: false, skipTaskbar: false, alwaysOnTop: false, show: false,
+    frame: false, transparent: true, resizable: false, skipTaskbar: false, alwaysOnTop: true, show: false,
     backgroundColor: '#00000000', title: 'Ayarlar', icon: path.join(__dirname, 'icon.png'),
     webPreferences: { preload: path.join(__dirname, 'preload.js') },
   });
   settingsWin.loadURL(BASE + 'settings.html');
-  settingsWin.once('ready-to-show', () => settingsWin.show());
+  settingsWin.setAlwaysOnTop(true, 'screen-saver');   // widget ile aynı seviye: diskin arkasında kalmasın
+  settingsWin.once('ready-to-show', () => { settingsWin.show(); settingsWin.moveTop(); sendState(); });
+  settingsWin.on('focus', () => settingsWin && settingsWin.moveTop());
   settingsWin.on('closed', () => { settingsWin = null; });
 }
 function applySetting(k, v) {
@@ -164,8 +172,9 @@ function applySetting(k, v) {
 let fadeT = null;
 const toggleWidget = () => {
   if (!widget) return; clearTimeout(fadeT);
-  if (widget.isVisible() && !widget._hiding) { widget._hiding = true; widget.webContents.send('fade', false); fadeT = setTimeout(() => { widget.hide(); widget._hiding = false; }, 280); }
-  else { widget._hiding = false; widget.webContents.send('fade', false, true); widget.showInactive(); setTimeout(() => widget && widget.webContents.send('fade', true), 30); }
+  if (widget.isVisible() && !widget._hiding) { widget._hiding = true; widget.webContents.send('fade', false); fadeT = setTimeout(() => { widget.hide(); widget._hiding = false; sendState(); }, 280); }
+  else { widget._hiding = false; widget.webContents.send('fade', false, true); widget.showInactive(); setTimeout(() => widget && widget.webContents.send('fade', true), 30); settingsWin && settingsWin.moveTop(); }
+  sendState();
 };
 
 app.whenReady().then(async () => {
@@ -189,7 +198,7 @@ app.whenReady().then(async () => {
     else if (a === 'logout' && widget) widget.webContents.executeJavaScript("['access_token','refresh_token','expires_at'].forEach(k=>localStorage.removeItem(k)); location.href='/?widget'");
     else if (a === 'quit') app.quit();
     else if (a === 'minSettings') { settingsWin && settingsWin.minimize(); return; }
-    if (a !== 'toggleWidget' && settingsWin) settingsWin.close();
+    if (a === 'closeSettings' && settingsWin) settingsWin.close();   // diğer işlemler ayarları kapatmaz
   });
 
   // tıklama-geçirme: imleç widget'ın dolu bir alanındaysa pencere tıklanabilir, değilse masaüstüne geçer
