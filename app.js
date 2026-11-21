@@ -475,6 +475,7 @@ function bin(x, t) {
   return sm * (.5 + .5 * Math.sin(x * 20 + t * 3)) * (1 - x * .5);
 }
 
+const VIZ_K = .55;   // arka plan visualizer'da ortadaki halka daha küçük
 const MODES = {
   'Halka'(t, [c1, c2, c3], cx, cy, R) {
     const grd = g.createRadialGradient(cx, cy, 0, cx, cy, R * (.4 + sb * .4));
@@ -483,13 +484,18 @@ const MODES = {
     const N = 128, base = R * (.16 + sb * .06);
     g.save(); g.translate(cx, cy); g.rotate(rot); g.lineCap = 'round';
     for (let i = 0; i < N; i++) {
-      const v = bin(i < N/2 ? i / (N/2) : (N - i) / (N/2), t), a = i / N * Math.PI * 2, len = base * .15 + v * R * .22;
+      const v = bin(i < N/2 ? i / (N/2) : (N - i) / (N/2), t), a = i / N * Math.PI * 2, len = base * .15 + v * R * (BG ? .34 : .22);
       g.strokeStyle = rgb(i % 2 ? c2 : c3, .9); g.lineWidth = R * .006;
       g.beginPath(); g.moveTo(Math.cos(a) * base, Math.sin(a) * base);
       g.lineTo(Math.cos(a) * (base + len), Math.sin(a) * (base + len)); g.stroke();
     }
     g.restore();
-    g.beginPath(); g.arc(cx, cy, base * (.9 + sb * .15), 0, 6.28); g.fillStyle = rgb(c1, .9); g.fill();
+    const cr = base * (.9 + sb * .15), im = $('art');
+    g.beginPath(); g.arc(cx, cy, cr, 0, 6.28); g.fillStyle = rgb(c1, .9); g.fill();
+    if (BG && im.complete && im.naturalWidth) {   // ortada albüm kapağı
+      g.save(); g.beginPath(); g.arc(cx, cy, cr * .96, 0, 6.28); g.clip();
+      g.translate(cx, cy); g.rotate(rot * .5); g.drawImage(im, -cr, -cr, cr * 2, cr * 2); g.restore();
+    }
     for (const p of particles) {
       p.r += .002 * p.s * (1 + st * 8); if (p.r > 1) { p.r = 0; p.a = Math.random() * 6.28; }
       const d = base + p.r * R * .7;
@@ -559,7 +565,7 @@ function frame(now) {
   rot += .002 + sm * .01;
   if (!WIDGET) {
     g.fillStyle = mode === 'Spektrum' ? 'rgba(0,0,0,.35)' : 'rgba(0,0,0,.18)'; g.fillRect(0, 0, W, H);
-    MODES[mode](t, palette, W / 2, H / 2, Math.min(W, H));
+    MODES[mode](t, palette, W / 2, H / 2, Math.min(W, H) * (BG ? VIZ_K : 1));
   }
   layoutArc();
   if (WIDGET) B.classList.toggle('nolog', $('left').hidden);
@@ -663,27 +669,38 @@ if (WIDGET) for (const id of ['disc', 'mini']) document.getElementById(id)?.addE
 let lyr = [], lyrIdx = -2, lyrOn = true, lyrFor = null;
 if (BG) {
   const box = document.createElement('div'); box.id = 'lyrics';
-  box.innerHTML = '<div class="ln prev"></div><div class="ln cur"></div><div class="ln next"></div>';
   document.body.appendChild(box);
   window.widget?.getSettings?.().then(c => { lyrOn = c.lyrics !== false; });
   window.widget?.onSettings?.(c => { lyrOn = c.lyrics !== false; });
+  let words = [], lineT0 = 0, lineT1 = 0;
+  const build = i => {   // satırı kelimelere böl: uzun kelimeler büyük, kısa bağlaçlar küçük
+    box.innerHTML = '';
+    const txt = (lyr[i]?.s || '').toUpperCase();
+    words = txt.split(/\s+/).filter(Boolean).map(w => {
+      const e = document.createElement('span'); e.className = 'w' + (w.replace(/[^\p{L}\p{N}]/gu, '').length <= 3 ? ' sm' : ''); e.textContent = w;
+      box.appendChild(e); box.appendChild(document.createTextNode(' ')); return e;
+    });
+    lineT0 = lyr[i]?.t ?? 0; lineT1 = Math.min(lyr[i + 1]?.t ?? lineT0 + 4000, lineT0 + 6000);
+  };
+  const place = () => {   // halkanın soluna, dikeyde ortasına hizala
+    const m = Math.min(innerWidth, innerHeight);
+    box.style.right = (innerWidth / 2 + m * VIZ_K * .3) + 'px';
+    box.style.maxWidth = (innerWidth / 2 - m * VIZ_K * .3 - innerWidth * .06) + 'px';
+  };
+  place(); addEventListener('resize', place);
   const tick = () => {
     const on = lyrOn && lyr.length > 0;
     box.classList.toggle('on', on);
     if (on) {
-      const pos = curPos() + 250;   // küçük ön alma: satır sesle aynı anda gelsin
+      const pos = curPos() + 200;
       let i = -1; for (let k = 0; k < lyr.length && lyr[k].t <= pos; k++) i = k;
       if (i !== lyrIdx) {
-        lyrIdx = i;
-        box.classList.add('step');   // eski satır aşağı kayıp söner, yenisi yükselir
-        setTimeout(() => {
-          const q = box.children;
-          q[0].textContent = lyr[i - 1]?.s || ''; q[1].textContent = lyr[i]?.s || '♪'; q[2].textContent = lyr[i + 1]?.s || '';
-          box.classList.remove('step');
-        }, 180);
+        lyrIdx = i; box.classList.add('out');   // eski satır söner, yenisi kelime kelime gelir
+        setTimeout(() => { build(i); box.classList.remove('out'); }, 220);
       }
-      const a = lyr[i]?.t ?? 0, b = lyr[i + 1]?.t ?? a + 4000;   // satır içinde soldan sağa dolan vurgu
-      box.children[1].style.setProperty('--k', Math.max(0, Math.min(100, (pos - a) / Math.max(1, b - a) * 115)) + '%');
+      // kelimeler satır süresinin ilk %70'ine yayılarak tek tek belirir
+      const span = Math.max(300, (lineT1 - lineT0) * .7);
+      words.forEach((e, k) => e.classList.toggle('in', pos >= lineT0 + span * k / Math.max(1, words.length)));
     }
     requestAnimationFrame(tick);
   };
