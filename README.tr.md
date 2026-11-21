@@ -77,6 +77,7 @@ Masaüstünde yüzen bir Spotify widget'ı. Ortada çalan şarkının kapağıyl
   - Diskten büyüyen bir daireyle açılır, aynı şekilde kapanır.
   - Açılırken öndeki pencerelerin önüne geçmez, arkada kalır.
   - Animasyonlar: **Halka, Spektrum, Dalga, Galaksi.** İstersen belirli aralıklarla otomatik değişir.
+  - Varsa şarkı sözleri müzikle senkron görünür (LRCLIB). Ayarlardan kapatılabilir.
 - **Ayarlar penceresi:** Tüm ayarlar `%APPDATA%\spotify-visualizer\settings.json` dosyasına otomatik kaydedilir.
 
 <p align="center"><img src="docs/right.png" width="380" alt="Sağ taraf düzeni"></p>

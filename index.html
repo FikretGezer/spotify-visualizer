@@ -178,7 +178,7 @@
   /* widget görünürlüğü (ayar) */
   body.widget>#left,body.widget>#mini,body.widget::before{filter:opacity(var(--wop,1))}
   /* arka plan visualizer: arayüz yok, sadece animasyon */
-  body.bg>*:not(canvas){display:none!important}
+  body.bg>*:not(canvas):not(#lyrics){display:none!important}
   body.bg{cursor:none}
 
 /* sağ taraf: tüm düzen aynalanır, içerikler geri çevrilir (yazı/kapak okunur kalsın) */
@@ -189,6 +189,18 @@ body.widget #queue{transition:opacity .4s ease, filter .4s ease}
 body.widget.flipping #queue, body.widget.flipping #player{opacity:0!important;filter:blur(6px);transition:opacity .22s ease, filter .22s ease}
 /* sağ dock: ses barı oynatıcının soluna */
 body.widget.flipR #volpop{left:auto;right:100%;margin-left:0;margin-right:8px}
+/* senkron şarkı sözleri (visualizer) */
+#lyrics{display:none}
+body.bg #lyrics{display:flex;position:fixed;left:0;right:0;bottom:12vh;flex-direction:column;align-items:center;pointer-events:none;
+  font-family:'Segoe UI Variable Display','Segoe UI',sans-serif;text-align:center;opacity:0;transition:opacity .8s ease}
+body.bg.shown #lyrics.on{opacity:1}
+#lyrics .ln{max-width:80vw;transition:transform .55s cubic-bezier(.2,.9,.3,1),opacity .55s ease,filter .55s ease,font-size .55s ease}
+#lyrics .prev,#lyrics .next{font-size:clamp(16px,1.6vw,28px);font-weight:600;color:#fff;opacity:.35;filter:blur(.6px)}
+#lyrics .cur{font-size:clamp(28px,3.4vw,62px);font-weight:800;margin:.25em 0;line-height:1.15;
+  background:linear-gradient(90deg,#fff 0 var(--k,0%),rgba(255,255,255,.45) var(--k,0%) 100%);-webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 0 18px var(--glow,#1db95480)) drop-shadow(0 4px 14px #000a)}
+#lyrics.step .ln{transform:translateY(22px);opacity:0}
+#lyrics.step .cur{opacity:0}
 /* visualizer açılış/kapanış: diskten büyüyen daire */
 body.bg{background:transparent!important}
 body.bg canvas{clip-path:circle(0% at var(--rx,50%) var(--ry,50%));opacity:0;transition:clip-path 1s cubic-bezier(.7,0,.2,1),opacity .5s ease}

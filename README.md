@@ -77,6 +77,7 @@ A floating Spotify widget for your desktop. The cover of the current track spins
   - Opens with a circle growing out of the disc, and closes the same way.
   - Opens behind your current windows instead of jumping in front of them.
   - Animations: **Ring, Spectrum, Wave, Galaxy**, with optional auto-cycling.
+  - Shows time-synced lyrics (from LRCLIB) when available; can be turned off in settings.
 - **Settings window:** Everything is saved automatically to `%APPDATA%\spotify-visualizer\settings.json`.
 
 <p align="center"><img src="docs/right.png" width="380" alt="Right-side layout"></p>

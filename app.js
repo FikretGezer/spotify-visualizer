@@ -85,6 +85,7 @@ async function poll() {
     duration = it.duration_ms;
     if (track !== it.id) {
       track = it.id;
+      if (BG) loadLyrics(it);
       $('left').hidden = false;
       // yeni şarkı sıradaki listede varsa liste ona doğru yumuşakça kayar; başlık liste yenilenince değişir
       const k = queueItems.findIndex(q => q.id === it.id) + 1;
@@ -657,3 +658,54 @@ $('fs').onclick = () => document.fullscreenElement ? document.exitFullscreen() :
 
 // diske / mini'ye sağ tık → visualizer menüsü
 if (WIDGET) for (const id of ['disc', 'mini']) document.getElementById(id)?.addEventListener('contextmenu', e => { e.preventDefault(); e.stopPropagation(); window.widget?.contextMenu?.(); });
+
+// ---------- Senkron şarkı sözleri (sadece arka plan visualizer) ----------
+let lyr = [], lyrIdx = -2, lyrOn = true, lyrFor = null;
+if (BG) {
+  const box = document.createElement('div'); box.id = 'lyrics';
+  box.innerHTML = '<div class="ln prev"></div><div class="ln cur"></div><div class="ln next"></div>';
+  document.body.appendChild(box);
+  window.widget?.getSettings?.().then(c => { lyrOn = c.lyrics !== false; });
+  window.widget?.onSettings?.(c => { lyrOn = c.lyrics !== false; });
+  const tick = () => {
+    const on = lyrOn && lyr.length > 0;
+    box.classList.toggle('on', on);
+    if (on) {
+      const pos = curPos() + 250;   // küçük ön alma: satır sesle aynı anda gelsin
+      let i = -1; for (let k = 0; k < lyr.length && lyr[k].t <= pos; k++) i = k;
+      if (i !== lyrIdx) {
+        lyrIdx = i;
+        box.classList.add('step');   // eski satır aşağı kayıp söner, yenisi yükselir
+        setTimeout(() => {
+          const q = box.children;
+          q[0].textContent = lyr[i - 1]?.s || ''; q[1].textContent = lyr[i]?.s || '♪'; q[2].textContent = lyr[i + 1]?.s || '';
+          box.classList.remove('step');
+        }, 180);
+      }
+      const a = lyr[i]?.t ?? 0, b = lyr[i + 1]?.t ?? a + 4000;   // satır içinde soldan sağa dolan vurgu
+      box.children[1].style.setProperty('--k', Math.max(0, Math.min(100, (pos - a) / Math.max(1, b - a) * 115)) + '%');
+    }
+    requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+}
+async function loadLyrics(it) {
+  lyr = []; lyrIdx = -2; const id = it.id; lyrFor = id;
+  const cacheKey = 'lyr:' + id;
+  try { const c = localStorage.getItem(cacheKey); if (c) { lyr = JSON.parse(c); return; } } catch {}
+  const artist = it.artists?.[0]?.name || '', name = it.name || '';
+  const q = new URLSearchParams({ artist_name: artist, track_name: name, album_name: it.album?.name || '', duration: Math.round((it.duration_ms || 0) / 1000) });
+  let j = null;
+  try { const r = await fetch('https://lrclib.net/api/get?' + q); if (r.ok) j = await r.json(); } catch {}
+  if (!j?.syncedLyrics) {   // tam eşleşme yoksa aramayla dene
+    try { const r = await fetch('https://lrclib.net/api/search?' + new URLSearchParams({ track_name: name, artist_name: artist })); if (r.ok) j = (await r.json()).find(x => x.syncedLyrics) || null; } catch {}
+  }
+  if (lyrFor !== id || !j?.syncedLyrics) return;
+  const out = [];
+  for (const line of j.syncedLyrics.split(/\r?\n/)) {
+    const m = line.match(/^\[(\d+):(\d+(?:\.\d+)?)\]\s*(.*)$/); if (!m) continue;
+    out.push({ t: (+m[1] * 60 + +m[2]) * 1000, s: m[3].trim() });
+  }
+  lyr = out;
+  try { localStorage.setItem(cacheKey, JSON.stringify(out)); } catch {}
+}
