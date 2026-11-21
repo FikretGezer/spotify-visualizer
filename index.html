@@ -194,9 +194,10 @@ body.widget.flipR #volpop{left:auto;right:100%;margin-left:0;margin-right:8px}
 #lyrics{display:none}
 body.bg #lyrics{display:block;position:fixed;top:50%;transform:translateY(-50%);pointer-events:none;text-align:center;
   font-family:'Segoe UI Variable Display','Segoe UI',sans-serif;font-weight:800;font-size:clamp(30px,3.3vw,64px);line-height:1.05;letter-spacing:-.01em;
-  color:#fff;opacity:0;transition:opacity .8s ease;text-shadow:0 0 22px var(--glow,#ffffff40),0 4px 18px #000c}
+  color:#fff;opacity:0;transition:opacity .8s ease;text-shadow:0 0 calc(22px * var(--vglow,1)) color-mix(in srgb,var(--glow,#ffffff40) calc(var(--vglow,1) * 100%),transparent),0 4px 18px #000c}
 body.bg.shown #lyrics.on{opacity:1}
 body.bg #lyrics.top{transform:translate(-50%,0)}
+body.bg #lyrics.mid{transform:translate(-50%,-50%);font-size:clamp(40px,5vw,96px)}
 /* şeffaf mod: ortadan kenarlara doğru azalan gölge, duvar kağıdı görünür */
 body.bg.vclear::before{content:'';position:fixed;inset:0;pointer-events:none;
   background:radial-gradient(circle at 50% 50%,rgba(0,0,0,var(--shade,.7)) 0%,rgba(0,0,0,calc(var(--shade,.7) * .55)) 30%,rgba(0,0,0,0) 72%);

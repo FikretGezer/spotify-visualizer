@@ -152,6 +152,8 @@
       <h2>Visualizer</h2>
       <div class="row col"><div class="top"><div class="ico">🌌</div><div class="lbl"><b>Animasyon</b><small>Arka plan visualizer'da hangisi oynasın</small></div></div>
         <div class="pv"><canvas id="pv"></canvas><span id="pvName"></span></div><div class="modes" id="vizModes"></div></div>
+      <div class="row col"><div class="top"><div class="ico">✨</div><div class="lbl"><b>Visualizer glow</b><small>Animasyonların ve sözlerin parlaması · 0 = hiç</small></div></div>
+        <div class="sl"><input type="range" data-k="vizGlow" min="0" max="100" step="5"><output data-o="vizGlow"></output></div></div>
       <div class="row">
         <div class="ico">🎤</div><div class="lbl"><b>Şarkı sözleri</b><small>Varsa sözler müzikle senkron görünsün</small></div>
         <label class="tg"><input type="checkbox" data-k="lyrics"><span></span></label>
@@ -190,6 +192,7 @@
     edgeSoft: v => v + 'px',
     dockDelay: v => (+v).toFixed(1) + ' sn',
     vizShade: v => v + '%',
+    vizGlow: v => v + '%',
     vizCycle: v => +v === 0 ? 'Kapalı' : v + ' sn',
     backSpeed: v => v,
   };
@@ -198,7 +201,7 @@
     el.style.setProperty('--p', p + '%');
     const o = document.querySelector(`[data-o="${el.dataset.k}"]`); if (o) o.textContent = FMT[el.dataset.k](el.value);
   }
-  const MODES = { 'Halka': '⭕ Halka', 'Spektrum': '📊 Spektrum', 'Dalga': '〰️ Dalga', 'Galaksi': '🌀 Galaksi' };
+  const MODES = { 'Halka': '⭕ Halka', 'Spektrum': '📊 Spektrum', 'Dalga': '〰️ Dalga', 'Galaksi': '🌀 Galaksi', 'Sözler': '🎤 Sadece sözler' };
   // mini ön izleme: seçili animasyon, üstüne gelinen butonun animasyonu
   let pvCur = 'Halka', pvMode = 'Halka', pvFade = 1;
   const pc = document.getElementById('pv'), px = pc.getContext('2d');
@@ -228,6 +231,13 @@
         px.strokeStyle = rg(c, .9); px.shadowColor = rg(c, 1); px.beginPath();
         for (let x = 0; x <= W; x += 4) { const u = x / W, y = cy + Math.sin(u * 12 + t * 2.4 + ph) * (.35 + beat * .4) * Math.sin(u * Math.PI) * H * .4 * amp; x ? px.lineTo(x, y) : px.moveTo(x, y); }
         px.stroke(); }
+      px.shadowBlur = 0;
+    } else if (pvMode === 'Sözler') {
+      px.fillStyle = 'rgba(5,5,10,1)'; px.fillRect(0, 0, W, H);
+      px.textAlign = 'center'; px.textBaseline = 'middle'; px.fillStyle = '#fff'; px.shadowColor = rg(C1, .8); px.shadowBlur = 14 * dpr;
+      const words = ['WHATEVER', "I'VE", 'DONE'], k = Math.floor(t * 1.6) % 5;
+      px.font = `800 ${22 * dpr}px Segoe UI`; let x = cx - 70 * dpr;
+      words.forEach((w, i) => { if (i < k) { px.font = `800 ${(w.length > 3 ? 22 : 14) * dpr}px Segoe UI`; px.fillText(w, x + px.measureText(w).width / 2, cy); } x += px.measureText(w + ' ').width + 4 * dpr; });
       px.shadowBlur = 0;
     } else {
       for (const p of pts) { p.r += .004 * p.s * (1 + beat * 3); if (p.r > 1) { p.r = 0; p.a = Math.random() * 6.28; }

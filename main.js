@@ -6,7 +6,7 @@ const path = require('path');
 const PORT = 8888;
 const BASE = `http://127.0.0.1:${PORT}/`;
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.png': 'image/png' };
-const DEFAULTS = { alwaysOnTop: true, discSize: 240, bgOpacity: 90, spin: true, backDelay: 3, smooth: 12, backSpeed: 4, glow: 100, edgeSoft: 6, dockDelay: 1.2, opacity: 100, vizMode: 'Halka', vizCycle: 0, lyrics: true, vizClear: false, vizShade: 70 };
+const DEFAULTS = { alwaysOnTop: true, discSize: 240, bgOpacity: 90, spin: true, backDelay: 3, smooth: 12, backSpeed: 4, glow: 100, edgeSoft: 6, dockDelay: 1.2, opacity: 100, vizMode: 'Halka', vizCycle: 0, lyrics: true, vizClear: false, vizShade: 70, vizGlow: 100 };
 const widgetSize = () => ({ w: 320 + 450, h: 320 + 470 });   // altta oynatıcı için de yer var   // sabit (en büyük disk) → boyut değişince pencere zıplamaz
 
 // tek kopya çalışsın
@@ -316,6 +316,12 @@ app.whenReady().then(async () => {
     if (!widget) return;
     Menu.buildFromTemplate([
       { label: visualizer ? "Visualizer'ı kapat" : "Visualizer'ı aç", click: openVisualizer },
+      { type: 'separator' },
+      { label: 'Şarkı sözleri', type: 'checkbox', checked: cfg.lyrics !== false, click: () => { applySetting('lyrics', cfg.lyrics === false); settingsWin && settingsWin.webContents.send('settings:refresh'); } },
+      { label: 'Animasyon', submenu: ['Halka', 'Spektrum', 'Dalga', 'Galaksi', 'Sözler'].map(m => ({
+        label: m === 'Sözler' ? 'Sadece sözler' : m, type: 'radio', checked: (cfg.vizMode || 'Halka') === m,
+        click: () => { applySetting('vizMode', m); settingsWin && settingsWin.webContents.send('settings:refresh'); } })) },
+      { type: 'separator' },
       { label: 'Ayarlar', click: openSettings },
     ]).popup({ window: widget });
   });

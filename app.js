@@ -192,7 +192,7 @@ if (WIDGET) for (const id of ['disc', 'mini']) {
 
 // ---------- Ayarlar (tepsi → sağ tık) ----------
 let smoothK = .12, backK = .04, returning = false, backDelayMs = 3000, justDragged = false;
-let vizClear = false;
+let vizClear = false, VG = 1;   // VG: visualizer glow çarpanı (0 = hiç)
 function applySettings(c) {
   if (!c) return;
   const st = document.documentElement.style;
@@ -202,10 +202,11 @@ function applySettings(c) {
   st.setProperty('--wop', (c.opacity ?? 100) / 100);
   vizClear = !!c.vizClear; document.body.classList.toggle('vclear', vizClear);
   st.setProperty('--shade', (c.vizShade ?? 70) / 100);
+  VG = (c.vizGlow ?? 100) / 100; st.setProperty('--vglow', VG);
   if (!WIDGET) {   // visualizer: animasyon seçimi + otomatik değiştirme (ayarlardan)
     if (c.vizMode && c.vizMode !== mode && MODES[c.vizMode]) setMode(c.vizMode);
     clearInterval(window._vizCyc);
-    if (c.vizCycle > 0) window._vizCyc = setInterval(() => setMode(MODE_NAMES[(MODE_NAMES.indexOf(mode) + 1) % MODE_NAMES.length]), c.vizCycle * 1000);
+    if (c.vizCycle > 0) window._vizCyc = setInterval(() => setMode(CYCLE_NAMES[(CYCLE_NAMES.indexOf(mode) + 1) % CYCLE_NAMES.length]), c.vizCycle * 1000);
   }
   st.setProperty('--soft', (c.edgeSoft ?? 6) + 'px');
   document.body.classList.toggle('nospin', c.spin === false);
@@ -480,7 +481,7 @@ const VIZ_K = .55;   // arka plan visualizer'da ortadaki halka daha küçük
 const MODES = {
   'Halka'(t, [c1, c2, c3], cx, cy, R) {
     const grd = g.createRadialGradient(cx, cy, 0, cx, cy, R * (.4 + sb * .4));
-    grd.addColorStop(0, rgb(c1, .35 + sb * .4)); grd.addColorStop(.5, rgb(c2, .15)); grd.addColorStop(1, 'rgba(0,0,0,0)');
+    grd.addColorStop(0, rgb(c1, (.35 + sb * .4) * VG)); grd.addColorStop(.5, rgb(c2, .15 * VG)); grd.addColorStop(1, 'rgba(0,0,0,0)');
     g.fillStyle = grd; g.fillRect(0, 0, W, H);
     const N = 128, base = R * (.16 + sb * .06);
     g.save(); g.translate(cx, cy); g.rotate(rot); g.lineCap = 'round';
@@ -518,7 +519,7 @@ const MODES = {
     let data = null;
     if (analyser) { analyser.getByteTimeDomainData(wave); data = wave; }
     const lines = [[c1, 1, 0], [c2, .7, .6], [c3, .5, 1.2]];
-    g.lineWidth = 3 * devicePixelRatio; g.shadowBlur = 20 * devicePixelRatio;
+    g.lineWidth = 3 * devicePixelRatio; g.shadowBlur = 20 * devicePixelRatio * VG;
     for (const [c, amp, ph] of lines) {
       g.strokeStyle = rgb(c, .9); g.shadowColor = rgb(c, 1); g.beginPath();
       for (let x = 0; x <= W; x += 6) {
@@ -541,17 +542,19 @@ const MODES = {
       g.beginPath(); g.arc(x, y, s, 0, 6.28); g.fill();
     }
     const grd = g.createRadialGradient(cx, cy, 0, cx, cy, R * (.12 + sb * .15));
-    grd.addColorStop(0, rgb([255,255,255], .8)); grd.addColorStop(.3, rgb(c1, .6)); grd.addColorStop(1, 'rgba(0,0,0,0)');
+    grd.addColorStop(0, rgb([255,255,255], .8 * VG)); grd.addColorStop(.3, rgb(c1, .6 * VG)); grd.addColorStop(1, 'rgba(0,0,0,0)');
     g.fillStyle = grd; g.fillRect(0, 0, W, H);
   },
+  'Sözler'() {},   // sadece şarkı sözleri: animasyon yok
 };
 const MODE_NAMES = Object.keys(MODES);
+const CYCLE_NAMES = MODE_NAMES.filter(m => m !== 'Sözler');   // otomatik geçiş sadece animasyonlar arasında
 let mode = (() => { try { return localStorage.getItem('mode'); } catch { return null; } })();
 if (!MODES[mode]) mode = MODE_NAMES[0];
 function setMode(m) {
   mode = m; try { localStorage.setItem('mode', m); } catch {}
   document.querySelectorAll('#modes button').forEach(b => b.classList.toggle('on', b.textContent === m));
-  g.fillStyle = '#000'; g.fillRect(0, 0, W, H);
+  if (vizClear) g.clearRect(0, 0, W, H); else { g.fillStyle = '#000'; g.fillRect(0, 0, W, H); }
 }
 MODE_NAMES.forEach((m, i) => {
   const b = document.createElement('button'); b.textContent = m; b.title = `Kısayol: ${i + 1}`;
@@ -680,7 +683,7 @@ if (BG) {
   let words = [], lineT0 = 0, lineT1 = 0;
   const build = i => {   // satırı kelimelere böl: uzun kelimeler büyük, kısa bağlaçlar küçük
     box.innerHTML = '';
-    const txt = (lyr[i]?.s || '').toUpperCase();
+    const txt = (lyr[i]?.s || '♪').toUpperCase();   // sözsüz aralarda nota
     words = txt.split(/\s+/).filter(Boolean).map(w => {
       const e = document.createElement('span'); e.className = 'w' + (w.replace(/[^\p{L}\p{N}]/gu, '').length <= 3 ? ' sm' : ''); e.textContent = w;
       box.appendChild(e); box.appendChild(document.createTextNode(' ')); return e;
@@ -690,8 +693,9 @@ if (BG) {
   let placedFor = '';
   const place = () => {   // sözlerin yeri animasyona göre: halka/galakside solda, spektrum/dalgada üstte ortada
     placedFor = mode + innerWidth;
-    const m = Math.min(innerWidth, innerHeight), side = mode === 'Halka' || mode === 'Galaksi', st = box.style;
-    box.classList.toggle('top', !side);
+    const m = Math.min(innerWidth, innerHeight), side = mode === 'Halka' || mode === 'Galaksi', mid = mode === 'Sözler', st = box.style;
+    box.classList.toggle('top', !side && !mid); box.classList.toggle('mid', mid);
+    if (mid) { st.right = 'auto'; st.left = '50%'; st.top = '50%'; st.maxWidth = '76vw'; return; }
     if (side) {
       const gap = m * VIZ_K * (mode === 'Galaksi' ? .55 : .3);
       st.left = 'auto'; st.right = (innerWidth / 2 + gap) + 'px'; st.top = '50%'; st.maxWidth = (innerWidth / 2 - gap - innerWidth * .06) + 'px';
