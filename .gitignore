@@ -1,0 +1,8 @@
+node_modules/
+dist/
+config.js
+*.bak
+*.bak[0-9]*
+graphify-out/
+.claude/
+NOTES.md
