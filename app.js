@@ -7,7 +7,7 @@ const $ = id => document.getElementById(id);
 const WIDGET = new URLSearchParams(location.search).has('widget') || location.hash === '#widget';
 const BG = new URLSearchParams(location.search).has('bg');   // arka plan visualizer: sadece animasyon
 if (BG) {
-  document.body.classList.add('bg'); setTimeout(() => captureAudio(), 800);
+  document.body.classList.add('bg'); document.documentElement.classList.add('bgwin');   // pencere gerçekten saydam olsun setTimeout(() => captureAudio(), 800);
   const q = new URLSearchParams(location.search);
   document.body.style.setProperty('--rx', q.get('rx') || '50%'); document.body.style.setProperty('--ry', q.get('ry') || '50%');
   window.widget.onReveal(() => requestAnimationFrame(() => document.body.classList.add('shown')));

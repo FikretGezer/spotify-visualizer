@@ -207,7 +207,8 @@ body.bg #lyrics.out{opacity:0!important;transition:opacity .2s ease}
 #lyrics .w.sm{font-size:.6em;font-weight:700}
 #lyrics .w.in{opacity:1;transform:none;filter:none}
 /* visualizer açılış/kapanış: diskten büyüyen daire */
-body.bg{background:transparent!important}
+html.bgwin,body.bg{background:transparent!important}
+body.bg:not(.vclear) canvas{background:#000}
 body.bg canvas{clip-path:circle(0% at var(--rx,50%) var(--ry,50%));opacity:0;transition:clip-path 1s cubic-bezier(.7,0,.2,1),opacity .5s ease}
 body.bg.shown canvas{clip-path:circle(150% at var(--rx,50%) var(--ry,50%));opacity:1}
 body.bg.hiding canvas{transition:clip-path .7s cubic-bezier(.6,0,.4,1),opacity .7s ease .1s}
