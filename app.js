@@ -334,11 +334,8 @@ function layoutArc() {
 // Liste üstünde görünmez bir yakalama alanı: boşluklarda da tekerlek/sürükle çalışır
 {
   const hit = $('arcHit');
-  const liAt = (x, y) => [...$('queue').children].find(el => {
-    if (+el.style.opacity <= .3 || el.classList.contains('ghost')) return false;
-    const r = el.getBoundingClientRect();
-    return x >= r.left && x <= r.right && y >= r.top && y <= r.bottom;
-  });
+  // eğik kartların kutuları üst üste biniyor: tarayıcının kendi isabet testiyle imlecin gerçekten üstünde olduğu kartı bul
+  const liAt = (x, y) => document.elementsFromPoint(x, y).map(e => e.closest('#queue li')).find(el => el && !el.classList.contains('ghost') && +el.style.opacity > .3) || null;
   // kaydırmayı bıraktıktan 3 sn sonra yumuşakça başa (şimdi çalıyor) dön; yeni kaydırma süreyi sıfırlar
   let backT = 0;
   const scheduleBack = () => { clearTimeout(backT); returning = false; if (backDelayMs > 0) backT = setTimeout(() => { arcTarget = 0; returning = true; }, backDelayMs); };
