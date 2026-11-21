@@ -73,12 +73,18 @@
   .acts{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:10px 0 12px}
   .act{border:1px solid var(--line);background:#ffffff0d;color:#fff;border-radius:14px;padding:12px 10px;font:600 13px inherit;font-family:inherit;cursor:pointer;display:flex;align-items:center;gap:8px;transition:.2s}
   .act:hover{background:#ffffff1c;transform:translateY(-1px)}
-  .act.tog{justify-content:flex-start}
-  .act .st{margin-left:auto;font:700 10.5px inherit;font-family:inherit;font-style:normal;letter-spacing:.04em;padding:3px 8px;border-radius:99px;background:#ffffff14;color:#ffffff99;transition:.25s}
+  .act.tog{justify-content:flex-start;white-space:nowrap;position:relative;overflow:hidden;outline:none}
+  .act.tog::after{content:'';position:absolute;inset:0;border-radius:inherit;background:radial-gradient(circle at 85% 50%,#1db95455,transparent 60%);opacity:0;pointer-events:none}
+  .act.tog.on::after{animation:tglow .6s ease-out}
+  .act .st{margin-left:auto;flex:none;width:54px;box-sizing:border-box;text-align:center;font:700 10px inherit;font-family:inherit;font-style:normal;letter-spacing:.05em;
+    padding:4px 0;border-radius:99px;background:#ffffff14;color:#ffffff99;transition:background .3s,color .3s;animation:toff .35s cubic-bezier(.3,1.5,.5,1)}
   .act .st::before{content:'KAPALI'}
   .act.on{border-color:#1db95488;background:#1db95418}
-  .act.on .st{background:#1db954;color:#04140a}
+  .act.on .st{background:#1db954;color:#04140a;animation:ton .4s cubic-bezier(.3,1.6,.5,1)}
   .act.on .st::before{content:'AÇIK'}
+  @keyframes ton{0%{transform:scale(.7)}60%{transform:scale(1.12)}100%{transform:none}}
+  @keyframes toff{0%{transform:scale(1.1)}100%{transform:none}}
+  @keyframes tglow{0%{opacity:1}100%{opacity:0}}
   .act.danger:hover{background:#ff4d6d33;border-color:#ff4d6d88}
   footer{position:relative;text-align:center;font-size:10.5px;color:#ffffff55;padding:0 0 12px}
 </style>
