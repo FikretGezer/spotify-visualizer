@@ -355,7 +355,11 @@ function layoutArc() {
   }, { passive: false });
   let y0 = null, t0 = 0, hov = null, btn = 0;   // sol tık = sadece seçim; basılı sürükleyerek kaydırma yalnızca orta tuşla
   const onDisc = (x, y) => { const r = $('disc').getBoundingClientRect(); return Math.hypot(x - r.left - r.width / 2, y - r.top - r.height / 2) <= r.width / 2; };
-  hit.addEventListener('mousedown', e => { if (e.button === 1) e.preventDefault(); });   // orta tuş otomatik kaydırma ikonu çıkmasın
+  hit.addEventListener('mousedown', e => { if (e.button === 1) e.preventDefault(); });
+  // liste kartları diskin üstüne bindiğinde: diskin dairesi içindeki basış diske gitsin (taşıma/küçültme), kart tıklanmasın
+  const Q = $('queue');
+  Q.addEventListener('pointerdown', e => { if (e.button === 0 && onDisc(e.clientX, e.clientY)) { e.stopPropagation(); if (WIDGET && window.__discDown) window.__discDown(e); } }, true);
+  Q.addEventListener('click', e => { if (onDisc(e.clientX, e.clientY)) { e.stopPropagation(); e.preventDefault(); } }, true);   // orta tuş otomatik kaydırma ikonu çıkmasın
   hit.addEventListener('pointerdown', e => { if (e.button > 1) return;
     if (e.button === 0 && onDisc(e.clientX, e.clientY)) { if (WIDGET && window.__discDown) window.__discDown(e); return; }   // disk üstünde: liste değil disk
     hit.classList.add('active'); btn = e.button; cancelBack(); y0 = e.clientY; t0 = arcTarget; arcMoved = false; hit.setPointerCapture(e.pointerId); });
