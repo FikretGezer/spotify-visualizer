@@ -183,7 +183,9 @@ if (!WIDGET) $('disc').onclick = () => setOpen(!$('left').classList.contains('op
 // widget: disk / mini → basılı tutup çek = taşı (main imleci izler), kımıldamadan bırak = küçült/büyüt
 if (WIDGET) for (const id of ['disc', 'mini']) {
   const el = $(id); let st = null;
-  el.addEventListener('pointerdown', e => { if (e.button) return; e.preventDefault(); getSelection()?.removeAllRanges(); st = 1; el.setPointerCapture(e.pointerId); window.widget.dragStart(); });
+  const down = e => { if (e.button) return; e.preventDefault(); getSelection()?.removeAllRanges(); st = 1; try { el.setPointerCapture(e.pointerId); } catch {} window.widget.dragStart(); };
+  if (id === 'disc') window.__discDown = down;   // liste yakalama alanı diskin üstüne bindiğinde de sürükleme çalışsın
+  el.addEventListener('pointerdown', down);
   // bırakma: pencere düzeyinde dinle (yakalama kaybolsa bile)
   const end = async () => { if (!st) return; st = null; const moved = await window.widget.dragEnd(); if (moved) fitIn(50); if (!moved) setMini(!document.body.classList.contains('mini')); };
   addEventListener('pointerup', end); el.addEventListener('lostpointercapture', end);
@@ -353,13 +355,14 @@ function layoutArc() {
   let y0 = null, t0 = 0, hov = null, btn = 0;   // sol tık = sadece seçim; basılı sürükleyerek kaydırma yalnızca orta tuşla
   const onDisc = (x, y) => { const r = $('disc').getBoundingClientRect(); return Math.hypot(x - r.left - r.width / 2, y - r.top - r.height / 2) <= r.width / 2; };
   hit.addEventListener('mousedown', e => { if (e.button === 1) e.preventDefault(); });   // orta tuş otomatik kaydırma ikonu çıkmasın
-  hit.addEventListener('pointerdown', e => { if (e.button > 1) return; hit.classList.add('active'); btn = e.button; cancelBack(); y0 = e.clientY; t0 = arcTarget; arcMoved = false; hit.setPointerCapture(e.pointerId); });
+  hit.addEventListener('pointerdown', e => { if (e.button > 1) return;
+    if (e.button === 0 && onDisc(e.clientX, e.clientY)) { if (WIDGET && window.__discDown) window.__discDown(e); return; }   // disk üstünde: liste değil disk hit.classList.add('active'); btn = e.button; cancelBack(); y0 = e.clientY; t0 = arcTarget; arcMoved = false; hit.setPointerCapture(e.pointerId); });
   hit.addEventListener('pointermove', e => {
     if (y0 !== null) {
       const dy = e.clientY - y0; if (btn === 1 && Math.abs(dy) > 6) arcMoved = true;
       if (arcMoved) arcTarget = t0 - dy / 50;
     }
-    const li = arcMoved ? null : liAt(e.clientX, e.clientY);
+    const li = arcMoved || onDisc(e.clientX, e.clientY) ? null : liAt(e.clientX, e.clientY);
     if (li !== hov) { hov?.classList.remove('hover'); li?.classList.add('hover'); hov = li; }
     hit.style.cursor = y0 !== null && arcMoved ? 'grabbing' : (li && li.id !== 'nowitem') || (!li && onDisc(e.clientX, e.clientY)) ? 'pointer' : 'default';
   });
@@ -369,7 +372,7 @@ function layoutArc() {
     arcTarget = Math.round(arcTarget);
     if (arcMoved) scheduleBack();
     if (!arcMoved && btn === 0) {
-      const li = liAt(e.clientX, e.clientY);
+      const li = onDisc(e.clientX, e.clientY) ? null : liAt(e.clientX, e.clientY);
       if (li && li.onclick) li.onclick();
       else if (onDisc(e.clientX, e.clientY) && $('disc').onclick) $('disc').onclick();   // diskin sağ yarısı bu alanın altında kalıyor
     }
@@ -394,11 +397,20 @@ async function jumpTo(i, li) {
     arcTarget = i + 1;   // tüm liste tekerlek gibi kayar, seçilen şarkı en üste gelir
   }
   try {
+    // 1) playlist/albüm bağlamı varsa: o şarkıdan tek seferde başlat (aradaki şarkılar duyulmaz)
+    if (context && target?.uri && !/:(artist|collection):|:user:[^:]+:collection/.test(context)) {
+      const r = await api('PUT', '/play', { context_uri: context, offset: { uri: target.uri } });
+      if (r && r.ok) return;
+    }
+    // 2) olmazsa: sesi kısıp i+1 kez 'ileri' (aradaki şarkılar duyulmasın), sonra sesi geri aç
+    const v0 = vol; if (v0) await api('PUT', '/volume?volume_percent=0');
+    try {
     // 'ileri'ye i+1 kez bas: aradaki şarkılar Spotify'ın sırasından da gerçekten düşer (liste ile birebir aynı olur)
     for (let k = 0; k <= i; k++) {
       const r = await api('POST', '/next');
       if (!r || !r.ok) return;   // aktif cihaz yok / hata
     }
+    } finally { if (v0) setTimeout(() => api('PUT', '/volume?volume_percent=' + v0), 350); }
   } finally { skipping = false; refreshSoon(); setTimeout(loadQueue, 900); }
 }
 function extractPalette(img) {
