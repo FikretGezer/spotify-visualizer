@@ -786,17 +786,31 @@ async function addTo(pl, row) {
 $('addpl').onclick = async e => {
   e.stopPropagation();
   if (document.body.classList.contains('plopen')) return plClose();
-  const L = $('pllist'); L.innerHTML = '<div class="note">Yükleniyor…</div>'; document.body.classList.add('plopen');
+  const L = $('pllist'); L.innerHTML = '<div id="plin"><div class="note">Yükleniyor…</div></div><div id="plsb"><b></b></div>'; plY = plT = 0; document.body.classList.add('plopen');
   if (!me) { const r = await web('GET', '/me'); if (r && r.ok) me = (await r.json()).id; }
-  const r = await web('GET', '/me/playlists?limit=50');
-  if (!r || !r.ok) { L.innerHTML = '<div class="note">Listeler alınamadı</div>'; return; }
-  const items = ((await r.json()).items || []).filter(p => p && (p.owner?.id === me || p.collaborative));
-  L.innerHTML = items.length ? '' : '<div class="note">Düzenlenebilir liste yok</div>';
-  for (const p of items) {
-    const d = document.createElement('div'), img = p.images?.at(-1)?.url;
-    d.append(img ? Object.assign(document.createElement('img'), { src: img }) : document.createElement('i'), document.createElement('span'));
-    d.lastChild.textContent = p.name; d.onclick = ev => { ev.stopPropagation(); addTo(p, d); }; L.append(d);
-  }
+  // tüm sayfaları çek (50'den fazla liste olabilir)
+  let all = [], u = '/me/playlists?limit=50';
+  while (u) { const r = await web('GET', u); if (!r || !r.ok) break; const j = await r.json(); all.push(...(j.items || [])); u = j.next ? j.next.replace('https://api.spotify.com/v1', '') : null; }
+  const items = all.filter(p => p && (p.owner?.id === me || p.collaborative));
+  const IN = $('plin'); IN.innerHTML = items.length ? '' : '<div class="note">' + (all.length ? 'Düzenlenebilir liste yok' : 'Listeler alınamadı') + '</div>';
+  items.forEach((p, k) => {
+    const d = document.createElement('div'), img = p.images?.at(-1)?.url; d.className = 'it'; d.style.animationDelay = Math.min(k, 12) * 25 + 'ms';
+    d.append(img ? Object.assign(document.createElement('img'), { src: img, loading: 'lazy' }) : document.createElement('i'), document.createElement('span'));
+    d.lastChild.textContent = p.name; d.onclick = ev => { ev.stopPropagation(); addTo(p, d); }; IN.append(d);
+  });
+  plRender();
 };
+// yumuşak (yaylı) kaydırma + parlayan kaydırma çubuğu
+let plY = 0, plT = 0, plRaf = 0;
+const plMax = () => { const IN = $('plin'); return IN ? Math.max(0, IN.scrollHeight - $('pllist').clientHeight) : 0; };
+function plRender() {
+  const IN = $('plin'), sb = $('plsb'); if (!IN) return;
+  plT = Math.max(0, Math.min(plMax(), plT)); plY += (plT - plY) * .2; if (Math.abs(plT - plY) < .3) plY = plT;
+  IN.style.transform = `translateY(${-plY}px)`;
+  const H = $('pllist').clientHeight, S = IN.scrollHeight, m = plMax();
+  sb.style.opacity = m ? 1 : 0; const th = Math.max(24, (H - 16) * H / S), b = sb.firstChild;
+  b.style.height = th + 'px'; b.style.top = (m ? plY / m : 0) * (H - 16 - th) + 'px';
+  plRaf = plY !== plT ? requestAnimationFrame(plRender) : 0;
+}
+$('pllist').addEventListener('wheel', e => { e.preventDefault(); e.stopPropagation(); plT += (e.deltaMode === 1 ? e.deltaY * 33 : e.deltaY) * .9; if (!plRaf) plRender(); }, { passive: false });
 addEventListener('pointerdown', e => { if (!e.target.closest('#plpop, #addpl')) plClose(); });
-$('pllist').addEventListener('wheel', e => e.stopPropagation(), { passive: true });
