@@ -217,11 +217,10 @@ body.bg.hiding canvas{transition:clip-path .7s cubic-bezier(.6,0,.4,1),opacity .
   /* beğen / listeye ekle */
   #nowitem>div{white-space:nowrap}
   #queue #nowitem>div::before{display:inline-block!important;vertical-align:middle}
-  #nowitem>div{position:relative}
-  #queue #nowitem>div::before{height:calc(var(--lab,0) * 24px)!important;line-height:24px}
-  #lib{position:absolute;right:2px;top:0;height:calc(var(--lab,0) * 24px);align-items:center;display:flex;gap:10px;opacity:var(--lab,0);overflow:visible;pointer-events:auto}
+  #nowitem>div{position:relative;padding-left:calc(var(--lab,0) * 36px)}
+  #lib{position:absolute;left:-2px;top:50%;transform:translateY(-50%);padding-right:5px;border-right:1px solid #ffffff22;flex-direction:column;align-items:center;display:flex;gap:2px;opacity:var(--lab,0);overflow:visible;pointer-events:auto}
   #lib *{pointer-events:auto}
-  #lib button{width:24px!important;height:24px!important;flex:none;color:#ffffffc0;position:relative}
+  #lib button{width:26px!important;height:26px!important;flex:none;color:#ffffffc0;position:relative}
   #lib svg{width:14px!important;height:14px!important;fill:none;stroke:currentColor;stroke-width:2.2}
   #lib button.hov{background:#ffffff26;color:#fff}
   body.widget #player{overflow:visible}
