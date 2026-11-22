@@ -217,17 +217,16 @@ body.bg.hiding canvas{transition:clip-path .7s cubic-bezier(.6,0,.4,1),opacity .
   /* beğen / listeye ekle */
   #nowitem>div{white-space:nowrap}
   #queue #nowitem>div::before{display:inline-block!important;vertical-align:middle}
-  #lib{display:inline-flex;vertical-align:middle;gap:2px;margin-left:6px;opacity:var(--lab,0);height:calc(var(--lab,0) * 20px);overflow:visible;pointer-events:auto}
+  #nowitem>div{position:relative}
+  #lib{position:absolute;right:-4px;top:-9px;display:flex;gap:2px;opacity:var(--lab,0);height:calc(var(--lab,0) * 20px);overflow:visible;pointer-events:auto}
   #lib *{pointer-events:auto}
   #lib button{width:20px!important;height:20px!important;color:#ffffffc0;position:relative}
-  #lib svg{width:13px!important;height:13px!important}
+  #lib svg{width:14px!important;height:14px!important;fill:none;stroke:currentColor;stroke-width:2.2}
   #lib button.hov{background:#ffffff26;color:#fff}
   body.widget #player{overflow:visible}
   #lib button{background:none;width:26px;height:26px;padding:0;border-radius:50%;display:grid;place-items:center;color:#ffffffa0;transition:transform .15s,color .2s,background .2s}
   #lib button:hover{background:#ffffff1a;color:#fff}
   #lib button:active{transform:scale(.85)}
-  #lib svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2}
-  #addpl svg{fill:currentColor;stroke:none}
   #like.on{color:#1ed760}
   #like.on svg{fill:currentColor}
   /* mini buton animasyonları */
@@ -287,7 +286,7 @@ body.bg.hiding canvas{transition:clip-path .7s cubic-bezier(.6,0,.4,1),opacity .
     <div id="disc"><img id="art" crossorigin="anonymous" alt=""></div>
     <button id="minBtn" title="Oynatıcıyı aç/kapat"><span>▲</span></button>
     <ul id="queue">
-      <li id="nowitem"><img id="npimg" alt=""><div><nav id="lib"><button id="like" title="Beğenilenlere ekle"><svg viewBox="0 0 24 24"><path d="M12 21s-7.5-4.6-10-9.3C.4 8.4 2.3 4.5 6 4.5c2.1 0 3.4 1.1 4 2.2.6-1.1 1.9-2.2 4-2.2 3.7 0 5.6 3.9 4 7.2C19.5 16.4 12 21 12 21z"/></svg></button><button id="addpl" title="Çalma listesine ekle"><svg viewBox="0 0 24 24"><path d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6z"/></svg></button></nav><b id="title"></b><span id="artist"></span></div></li>
+      <li id="nowitem"><img id="npimg" alt=""><div><nav id="lib"><button id="like" title="Beğenilenlere ekle"><svg viewBox="0 0 24 24"><path d="M12 21s-7.5-4.6-10-9.3C.4 8.4 2.3 4.5 6 4.5c2.1 0 3.4 1.1 4 2.2.6-1.1 1.9-2.2 4-2.2 3.7 0 5.6 3.9 4 7.2C19.5 16.4 12 21 12 21z"/></svg></button><button id="addpl" title="Çalma listesine ekle"><svg viewBox="0 0 24 24"><path d="M12 3.5v17M3.5 12h17" stroke-linecap="round"/></svg></button></nav><b id="title"></b><span id="artist"></span></div></li>
     </ul>
     <div id="arcHit"></div>
   </div>

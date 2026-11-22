@@ -797,7 +797,7 @@ $('addpl').onclick = async e => {
   // tüm sayfaları çek (50'den fazla liste olabilir)
   let all = [], u = '/me/playlists?limit=50';
   while (u) { const r = await web('GET', u); if (!r || !r.ok) break; const j = await r.json(); all.push(...(j.items || [])); u = j.next ? j.next.replace('https://api.spotify.com/v1', '') : null; }
-  const items = all.filter(p => p && (p.owner?.id === me || p.collaborative));
+  const items = all.filter(p => p && (p.owner?.id === me || p.collaborative)).sort((a, b) => (a.name || '').localeCompare(b.name || '', 'tr', { sensitivity: 'base' }));
   const IN = $('plin'); IN.innerHTML = items.length ? '' : '<div class="note">' + (all.length ? 'Düzenlenebilir liste yok' : 'Listeler alınamadı') + '</div>';
   items.forEach((p, k) => {
     const d = document.createElement('div'), img = p.images?.at(-1)?.url; d.className = 'it'; d.style.animationDelay = Math.min(k, 12) * 25 + 'ms';
