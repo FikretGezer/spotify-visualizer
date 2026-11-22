@@ -220,10 +220,12 @@ body.bg.hiding canvas{transition:clip-path .7s cubic-bezier(.6,0,.4,1),opacity .
   #nowitem>div{position:relative;padding-left:calc(var(--lab,0) * 36px)}
   #lib{position:absolute;left:-2px;top:50%;transform:translateY(-50%);padding-right:5px;border-right:1px solid #ffffff22;flex-direction:column;align-items:center;display:flex;gap:2px;opacity:var(--lab,0);overflow:visible;pointer-events:auto}
   #lib *{pointer-events:auto}
-  #lib.lib-in{animation:libLine .6s ease both}
+  #nowitem.lib-in>div{animation:libPad .45s cubic-bezier(.3,1.2,.5,1) both}
+  @keyframes libPad{from{padding-left:0}}
+  #nowitem.lib-in #lib{animation:libLine .6s ease .15s both}
   @keyframes libLine{from{border-right-color:transparent}}
-  #lib.lib-in button{animation:libIn .55s cubic-bezier(.3,1.5,.5,1) both}
-  #lib.lib-in button+button{animation-delay:.09s}
+  #nowitem.lib-in #lib button{animation:libIn .55s cubic-bezier(.3,1.5,.5,1) .2s both}
+  #nowitem.lib-in #lib button+button{animation-delay:.3s}
   @keyframes libIn{0%{opacity:0;transform:translateX(-10px) scale(.4) rotate(-40deg)}100%{opacity:1;transform:none}}
   #lib button{width:26px!important;height:26px!important;flex:none;color:#ffffffc0;position:relative}
   #lib svg{width:14px!important;height:14px!important;fill:none;stroke:currentColor;stroke-width:2.2}

@@ -85,7 +85,6 @@ async function poll() {
     duration = it.duration_ms;
     if (track !== it.id) {
       track = it.id; trackUri = it.uri; checkLiked();
-      { const L = $('lib'); L.classList.remove('lib-in'); void L.offsetWidth; L.classList.add('lib-in'); }   // ♥ + yeni şarkıda animasyonla belirsin
       if (BG) loadLyrics(it);
       $('left').hidden = false;
       // yeni şarkı sıradaki listede varsa liste ona doğru yumuşakça kayar; başlık liste yenilenince değişir
@@ -278,6 +277,7 @@ function renderQueue(q) {
       requestAnimationFrame(() => { g.style.opacity = 0; g.style.transform += ' translateY(-30px)'; });
       setTimeout(() => g.remove(), 400);
     }
+    if (nowChanged) { const N = $('nowitem'); N.classList.remove('lib-in'); void N.offsetWidth; N.classList.add('lib-in'); }   // ♥ + ve sol boşluk animasyonla açılsın
     $('title').textContent = pendingNow.name; $('artist').textContent = pendingNow.artist; $('npimg').src = pendingNow.img; pendingNow = null;
   }
   $('nowitem').dataset.id = track;
