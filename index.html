@@ -216,6 +216,7 @@ body.bg.shown canvas{clip-path:circle(150% at var(--rx,50%) var(--ry,50%));opaci
 body.bg.hiding canvas{transition:clip-path .7s cubic-bezier(.6,0,.4,1),opacity .7s ease .1s}
   /* beğen / listeye ekle */
   #nowitem>div{white-space:nowrap}
+  body.idle #queue #nowitem>div::before{content:"SON ÇALAN";color:#ffffff80}
   #queue #nowitem>div::before{display:inline-block!important;vertical-align:middle}
   #nowitem>div{position:relative;padding-left:calc(var(--lab,0) * 36px)}
   #lib{position:absolute;left:-2px;top:50%;transform:translateY(-50%);padding-right:5px;border-right:1px solid #ffffff22;flex-direction:column;align-items:center;display:flex;gap:2px;opacity:var(--lab,0);overflow:visible;pointer-events:auto}

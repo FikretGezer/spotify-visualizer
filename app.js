@@ -76,7 +76,8 @@ async function poll() {
   $('login').hidden = true;
   try {
     const r = await fetch('https://api.spotify.com/v1/me/player/currently-playing', { headers: { Authorization: 'Bearer ' + t } });
-    if (r.status === 204) { msg(WIDGET ? '' : 'Şu an çalan bir şey yok.'); playing = false; if (!track) restoreLast(); return; }
+    document.body.classList.toggle('idle', r.status === 204);   // Spotify'da aktif oturum yok: etiket 'SON ÇALAN' olsun
+    if (r.status === 204) { msg(WIDGET ? '' : 'Şu an çalan bir şey yok.'); playing = false; setPP?.(); if (!track) restoreLast(); return; }
     if (!r.ok) return msg('Spotify API hatası: ' + r.status);
     const j = await r.json(); msg('');
     playing = j.is_playing; context = j.context?.uri || null;
