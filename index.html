@@ -284,7 +284,7 @@ body.bg.hiding canvas{transition:clip-path .7s cubic-bezier(.6,0,.4,1),opacity .
     background:rgba(10,10,16,.72);backdrop-filter:blur(10px);border:1px solid #ffffff2a;color:#fff;box-shadow:0 4px 14px #0007;
     opacity:0;transform:scale(.6) rotate(-30deg);pointer-events:none;transition:opacity .25s,transform .4s cubic-bezier(.3,1.5,.5,1),left .5s cubic-bezier(.3,1.2,.5,1)}
   body.widget #listBtn svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;transition:transform .5s cubic-bezier(.3,1.4,.5,1)}
-  body.widget.listhov #listBtn,body.widget.listclosed #listBtn{opacity:1;transform:none;pointer-events:auto}
+  body.widget.listhov #listBtn,body.widget.listclosed.hov #listBtn{opacity:1;transform:none;pointer-events:auto}
   body.widget.listclosed #listBtn{left:calc(var(--D) - 6px)}
   body.widget.listclosed #listBtn svg{transform:rotate(180deg)}
   body.widget #listBtn:hover{background:rgba(40,40,52,.85);transform:scale(1.12)}

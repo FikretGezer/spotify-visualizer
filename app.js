@@ -697,7 +697,7 @@ if (WIDGET) {
   const hovT = {};
   const setHov = (cls, on) => { clearTimeout(hovT[cls]); if (on) B.classList.add(cls); else hovT[cls] = setTimeout(() => B.classList.remove(cls), 450); };
   window.widget?.onHover?.(id => {
-    setHov('hov', ['disc', 'minBtn'].includes(id));
+    setHov('hov', ['disc', 'minBtn', 'listBtn'].includes(id));
     setHov('hovmini', ['mini'].includes(id));
   });
   document.addEventListener('mouseleave', () => { if (B.classList.contains('peek')) { clearTimeout(peekT); peekT = setTimeout(() => B.classList.remove('peek'), 500); } });
