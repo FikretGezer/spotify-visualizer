@@ -1,7 +1,7 @@
 // ==== CONFIG: Client ID config.js dosyasında (config.example.js'e bak)
 import { CLIENT_ID } from './config.js';
 const REDIRECT_URI = 'http://127.0.0.1:8888/';
-const SCOPES = 'user-read-currently-playing user-read-playback-state user-modify-playback-state';
+const SCOPES = 'user-read-currently-playing user-read-playback-state user-modify-playback-state user-library-read user-library-modify playlist-read-private playlist-read-collaborative playlist-modify-public playlist-modify-private';
 
 const $ = id => document.getElementById(id);
 const WIDGET = new URLSearchParams(location.search).has('widget') || location.hash === '#widget';
@@ -84,7 +84,7 @@ async function poll() {
     const it = j.item; if (!it) return;
     duration = it.duration_ms;
     if (track !== it.id) {
-      track = it.id;
+      track = it.id; trackUri = it.uri; checkLiked();
       if (BG) loadLyrics(it);
       $('left').hidden = false;
       // yeni şarkı sıradaki listede varsa liste ona doğru yumuşakça kayar; başlık liste yenilenince değişir
@@ -645,7 +645,7 @@ if (WIDGET) {
   };
   addEventListener('mousemove', e => update(e.clientX, e.clientY));
   // tıklanabilir alanları ana sürece bildir; o imleci kendisi izleyip tıklama-geçirmeyi açar/kapatır
-  const HIT = '#disc, #arcHit.active, #queue li:not(.ghost), #player, #volpop, #controls button, #msg, #mini, #minBtn';
+  const HIT = '#disc, #arcHit.active, #queue li:not(.ghost), #player, #plpop, #volpop, #controls button, #msg, #mini, #minBtn';
   const ALWAYS = ['minBtn'];   // görünmezken de yeri tıklanabilir (üstüne gelince belirir)
   let lastRects = '';
   setInterval(() => {
@@ -754,3 +754,49 @@ async function loadLyrics(it) {
   lyr = out;
   try { localStorage.setItem(cacheKey, JSON.stringify(out)); } catch {}
 }
+
+// ---------- beğen / çalma listesine ekle ----------
+let trackUri = null, liked = false, me = null;
+async function web(method, path, body) {   // /v1 altındaki herhangi bir uç
+  const t = await getToken(); if (!t) return null;
+  return fetch('https://api.spotify.com/v1' + path, { method, headers: { Authorization: 'Bearer ' + t, ...(body ? { 'Content-Type': 'application/json' } : {}) }, body: body ? JSON.stringify(body) : undefined }).catch(() => null);
+}
+const showLike = () => { $('like').classList.toggle('on', liked); $('like').title = liked ? 'Beğenilenlerden çıkar' : 'Beğenilenlere ekle'; };
+async function checkLiked() {
+  const id = track, uri = trackUri; liked = false; showLike(); if (!id) return;
+  let r = await web('GET', '/me/library/contains?uris=' + encodeURIComponent(uri));
+  if (!r || !r.ok) r = await web('GET', '/me/tracks/contains?ids=' + id);
+  if (r && r.ok && id === track) { const a = await r.json(); liked = !!a[0]; showLike(); }
+}
+$('like').onclick = async () => {
+  if (!track) return; const was = liked; liked = !liked; showLike();
+  const m = was ? 'DELETE' : 'PUT';
+  let r = await web(m, '/me/library?uris=' + encodeURIComponent(trackUri));
+  if (!r || !r.ok) r = await web(m, '/me/tracks?ids=' + track);
+  if (!r || !r.ok) { liked = was; showLike(); msg('Beğenme başarısız (' + (r ? r.status : 'ağ') + ')'); }
+};
+const plClose = () => document.body.classList.remove('plopen');
+async function addTo(pl, row) {
+  const uri = trackUri; if (!uri) return;
+  let r = await web('POST', '/playlists/' + pl.id + '/items', { uris: [uri] });
+  if (!r || !r.ok) r = await web('POST', '/playlists/' + pl.id + '/tracks', { uris: [uri] });
+  if (r && r.ok) { row.classList.add('done'); row.lastChild.textContent = '✓ ' + pl.name; $('addpl').classList.add('ok'); setTimeout(() => { $('addpl').classList.remove('ok'); plClose(); }, 700); }
+  else msg('Listeye eklenemedi (' + (r ? r.status : 'ağ') + ')');
+}
+$('addpl').onclick = async e => {
+  e.stopPropagation();
+  if (document.body.classList.contains('plopen')) return plClose();
+  const L = $('pllist'); L.innerHTML = '<div class="note">Yükleniyor…</div>'; document.body.classList.add('plopen');
+  if (!me) { const r = await web('GET', '/me'); if (r && r.ok) me = (await r.json()).id; }
+  const r = await web('GET', '/me/playlists?limit=50');
+  if (!r || !r.ok) { L.innerHTML = '<div class="note">Listeler alınamadı</div>'; return; }
+  const items = ((await r.json()).items || []).filter(p => p && (p.owner?.id === me || p.collaborative));
+  L.innerHTML = items.length ? '' : '<div class="note">Düzenlenebilir liste yok</div>';
+  for (const p of items) {
+    const d = document.createElement('div'), img = p.images?.at(-1)?.url;
+    d.append(img ? Object.assign(document.createElement('img'), { src: img }) : document.createElement('i'), document.createElement('span'));
+    d.lastChild.textContent = p.name; d.onclick = ev => { ev.stopPropagation(); addTo(p, d); }; L.append(d);
+  }
+};
+addEventListener('pointerdown', e => { if (!e.target.closest('#plpop, #addpl')) plClose(); });
+$('pllist').addEventListener('wheel', e => e.stopPropagation(), { passive: true });
