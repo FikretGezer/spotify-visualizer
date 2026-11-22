@@ -299,6 +299,13 @@ function renderQueue(q) {
 
 // ---------- Kavisli liste: diskin etrafına sarılır, tekerlek/sürükle ile kayar ----------
 let arcPos = 0, arcTarget = 0, arcMoved = false;
+// liste katlama (origami yapraklar): 0 = açık, 1 = kapalı
+let listClosed = false; try { listClosed = localStorage.getItem('listClosed') === '1'; } catch {}
+let fold = listClosed ? 1 : 0;
+function setListClosed(c) {
+  listClosed = c; try { localStorage.setItem('listClosed', c ? '1' : ''); } catch {}
+  document.body.classList.toggle('listclosed', c); document.body.classList.remove('listhov');
+}
 const STEP = 0.33;            // öğeler arası açı (radyan)
 const PETAL = .45;            // satırların çember yönünde eğilme oranı (0 = düz)
 let START = -1.0, startT = -1.0;   // ilk öğenin açısı (sağ üst); disk ekranın tepesindeyse liste aşağı doğru açılır
@@ -307,6 +314,8 @@ function layoutArc() {
   const items = [...$('queue').children].filter(e => !e.classList.contains('ghost')), n = items.length;
   arcTarget = Math.max(0, Math.min(n - 1, arcTarget));
   START += (startT - START) * .08;
+  { const now = performance.now(), dt = Math.min(.05, (now - (layoutArc._t || now)) / 1000); layoutArc._t = now;   // yenileme hızından bağımsız
+    const d = (listClosed ? 1 : 0) - fold; fold += Math.sign(d) * Math.min(Math.abs(d), dt / .9); }   // ~0.9 sn
   arcPos += (arcTarget - arcPos) * (returning ? backK : smoothK);
   if (returning && Math.abs(arcPos) < .005) returning = false;
   const D = $('disc').offsetWidth, R = D / 2 + 26;
@@ -321,19 +330,21 @@ function layoutArc() {
     const el = items[i];
     el._off = Math.abs(el._off || 0) < .001 ? 0 : el._off * .93;   // liste yenilenince eski konumdan kayma
     const pos = i + el._off - arcPos;
-    const th = START + pos * STEP + .17 * Math.max(0, Math.min(1, pos));   // büyük 'şimdi çalıyor' satırının altında ek boşluk
+    // katlanma: uzaktaki yaprak önce kapanır, yakındaki en son; açılırken tersi
+    const fk = n > 1 ? i / (n - 1) : 0, fr = Math.max(0, Math.min(1, fold * 1.8 - (listClosed ? (1 - fk) : fk) * .8)), fe = fr * fr * (3 - 2 * fr);
+    const th = START + pos * STEP + .17 * Math.max(0, Math.min(1, pos)) - fe * (.5 + .25 * fk);   // büyük 'şimdi çalıyor' satırının altında ek boşluk
     // görünür pencere: üstte -1.3, altta +1.5 radyanda kaybolur
     const fade = th < START ? 1 - (START - th) / .35 : th > START + 1.75 ? 1 - (th - START - 1.75) / .5 : 1;
     const op = Math.max(0, Math.min(1, fade));
     const w = Math.max(0, 1 - Math.abs(i + el._off - arcPos));   // en üst konuma yakınlık → büyüme + etiket
     el._fade = Math.min(1, (el._fade ?? 1) + .05);
-    el.style.opacity = op * el._fade;
+    el.style.opacity = op * el._fade * (1 - fe);
     el.style.setProperty('--w', w.toFixed(3));
     // 'ŞİMDİ ÇALIYOR' etiketi sadece gerçekten çalan şarkıda (veya tıklanıp geçilmekte olan şarkıda)
     const isNow = el.id === 'nowitem' || (jumpId && el.dataset.id === jumpId && performance.now() < jumpUntil);
     el.style.setProperty('--lab', isNow ? w.toFixed(3) : 0);
     const Ri = R + 16 * Math.min(1, Math.abs(el._off));   // yer değiştiren satır diğerlerinin dışından geçsin
-    el.style.transform = `translate(${D / 2 + Math.cos(th) * Ri}px, ${D / 2 + Math.sin(th) * Ri}px) translateY(-50%) rotate(${th * PETAL}rad) scale(${(.85 + .15 * op) * (1 + .27 * w)})`;   // çiçek yaprağı gibi dışa doğru eğik
+    el.style.transform = `translate(${D / 2 + Math.cos(th) * Ri}px, ${D / 2 + Math.sin(th) * Ri}px) translateY(-50%) rotate(${th * PETAL}rad) scale(${(.85 + .15 * op) * (1 + .27 * w) * (1 - .55 * fe)}) perspective(520px) rotateY(${-fe * 100}deg)`;   // çiçek yaprağı gibi dışa doğru eğik
   }
 }
 // Liste üstünde görünmez bir yakalama alanı: boşluklarda da tekerlek/sürükle çalışır
@@ -361,10 +372,18 @@ function layoutArc() {
   const Q = $('queue');
   Q.addEventListener('pointerdown', e => { if (e.button === 0 && onDisc(e.clientX, e.clientY)) { e.stopPropagation(); if (WIDGET && window.__discDown) window.__discDown(e); } }, true);
   Q.addEventListener('click', e => { if (onDisc(e.clientX, e.clientY)) { e.stopPropagation(); e.preventDefault(); } }, true);   // orta tuş otomatik kaydırma ikonu çıkmasın
+  // liste aç/kapa butonu: liste üstüne gelince belirir
+  let hovT = 0;
+  const listHov = () => { if (listClosed) return; document.body.classList.add('listhov'); clearTimeout(hovT); hovT = setTimeout(() => document.body.classList.remove('listhov'), 1400); };
+  $('listBtn').onclick = e => { e?.stopPropagation?.(); setListClosed(!listClosed); };
+  $('listBtn').addEventListener('pointerenter', () => { clearTimeout(hovT); if (!listClosed) document.body.classList.add('listhov'); });
+  $('listBtn').addEventListener('pointerleave', listHov);
   hit.addEventListener('pointerdown', e => { if (e.button > 1) return;
+    if (e.button === 0 && document.elementsFromPoint(e.clientX, e.clientY).some(x => x.id === 'listBtn')) { $('listBtn').onclick(); return; }
     if (e.button === 0 && onDisc(e.clientX, e.clientY)) { if (WIDGET && window.__discDown) window.__discDown(e); return; }   // disk üstünde: liste değil disk
     hit.classList.add('active'); btn = e.button; cancelBack(); y0 = e.clientY; t0 = arcTarget; arcMoved = false; hit.setPointerCapture(e.pointerId); });
   hit.addEventListener('pointermove', e => {
+    listHov();
     if (y0 !== null) {
       const dy = e.clientY - y0; if (btn === 1 && Math.abs(dy) > 6) arcMoved = true;
       if (arcMoved) arcTarget = t0 - dy / 50;
@@ -656,7 +675,7 @@ if (WIDGET) {
   };
   addEventListener('mousemove', e => update(e.clientX, e.clientY));
   // tıklanabilir alanları ana sürece bildir; o imleci kendisi izleyip tıklama-geçirmeyi açar/kapatır
-  const HIT = '#disc, #arcHit.active, #queue li:not(.ghost), #player, #plpop, #volpop, #controls button, #msg, #mini, #minBtn';
+  const HIT = '#disc, #listBtn, #arcHit.active, #queue li:not(.ghost), #player, #plpop, #volpop, #controls button, #msg, #mini, #minBtn';
   const ALWAYS = ['minBtn'];   // görünmezken de yeri tıklanabilir (üstüne gelince belirir)
   let lastRects = '';
   setInterval(() => {
@@ -837,3 +856,5 @@ addEventListener('pointerdown', e => { if (!document.elementsFromPoint(e.clientX
     if (id === 'like') bump($(id), 'a-burst');
   });
 }
+
+document.body.classList.toggle('listclosed', listClosed);

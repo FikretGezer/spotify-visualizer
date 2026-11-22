@@ -278,6 +278,19 @@ body.bg.hiding canvas{transition:clip-path .7s cubic-bezier(.6,0,.4,1),opacity .
   #pllist img,#pllist i{width:28px;height:28px;border-radius:5px;flex:none;object-fit:cover;background:#ffffff14}
   #pllist div.done{color:#1ed760}
   #pllist .note{color:#ffffff90;cursor:default}
+  /* liste aç/kapa: origami yapraklar */
+  #listBtn{display:none}
+  body.widget #listBtn{display:grid;place-items:center;position:absolute;left:calc(var(--D) + 4px);top:calc(20px + var(--D) / 2 - 15px);width:30px;height:30px;padding:0;border-radius:50%;z-index:3;
+    background:rgba(10,10,16,.72);backdrop-filter:blur(10px);border:1px solid #ffffff2a;color:#fff;box-shadow:0 4px 14px #0007;
+    opacity:0;transform:scale(.6) rotate(-30deg);pointer-events:none;transition:opacity .25s,transform .4s cubic-bezier(.3,1.5,.5,1),left .5s cubic-bezier(.3,1.2,.5,1)}
+  body.widget #listBtn svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;transition:transform .5s cubic-bezier(.3,1.4,.5,1)}
+  body.widget.listhov #listBtn,body.widget.listclosed #listBtn{opacity:1;transform:none;pointer-events:auto}
+  body.widget.listclosed #listBtn{left:calc(var(--D) - 6px)}
+  body.widget.listclosed #listBtn svg{transform:rotate(180deg)}
+  body.widget #listBtn:hover{background:rgba(40,40,52,.85);transform:scale(1.12)}
+  body.widget #listBtn:active{transform:scale(.9)}
+  body.widget.listclosed #arcHit{display:none}
+  body.widget.mini #listBtn{display:none}
 </style>
 </head>
 <body>
@@ -297,6 +310,7 @@ body.bg.hiding canvas{transition:clip-path .7s cubic-bezier(.6,0,.4,1),opacity .
       <li id="nowitem"><img id="npimg" alt=""><div><nav id="lib"><button id="like" title="Beğenilenlere ekle"><svg viewBox="0 0 24 24"><path d="M12 21s-7.5-4.6-10-9.3C.4 8.4 2.3 4.5 6 4.5c2.1 0 3.4 1.1 4 2.2.6-1.1 1.9-2.2 4-2.2 3.7 0 5.6 3.9 4 7.2C19.5 16.4 12 21 12 21z"/></svg></button><button id="addpl" title="Çalma listesine ekle"><svg viewBox="0 0 24 24"><path d="M12 3.5v17M3.5 12h17" stroke-linecap="round"/></svg></button></nav><b id="title"></b><span id="artist"></span></div></li>
     </ul>
     <div id="arcHit"></div>
+    <button id="listBtn" title="Listeyi aç/kapat"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
   </div>
   <div id="player">
     <div id="bar" title="Tıkla veya sürükle"><div id="prog"></div></div>
