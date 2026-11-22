@@ -188,12 +188,13 @@ if (WIDGET) for (const id of ['disc', 'mini']) {
   if (id === 'disc') window.__discDown = down;   // liste yakalama alanı diskin üstüne bindiğinde de sürükleme çalışsın
   el.addEventListener('pointerdown', down);
   // bırakma: pencere düzeyinde dinle (yakalama kaybolsa bile)
-  const end = async () => { if (!st) return; st = null; const moved = await window.widget.dragEnd(); if (moved) fitIn(50); if (!moved) setMini(!document.body.classList.contains('mini')); };
+  const end = async () => { if (!st) return; st = null; const moved = await window.widget.dragEnd(); if (moved) fitIn(50); if (!moved) { const m = document.body.classList.contains('mini'); if (m || clickMini) setMini(!m); } };   // ayar kapalıysa büyük disk tıklamayla küçülmez
   addEventListener('pointerup', end); el.addEventListener('lostpointercapture', end);
   addEventListener('pointermove', e => { if (st && e.buttons === 0) end(); });   // bırakma kaçarsa güvenlik ağı
 }
 
 // ---------- Ayarlar (tepsi → sağ tık) ----------
+let foldTime = .9, clickMini = true;
 let smoothK = .12, backK = .04, returning = false, backDelayMs = 3000, justDragged = false;
 let vizClear = false, VG = 1;   // VG: visualizer glow çarpanı (0 = hiç)
 function applySettings(c) {
@@ -216,6 +217,7 @@ function applySettings(c) {
   smoothK = (c.smooth ?? 12) / 100;
   backK = (c.backSpeed ?? 4) / 100;
   backDelayMs = (c.backDelay ?? 3) * 1000;
+  foldTime = Math.max(.1, +(c.foldTime ?? .9)); clickMini = c.clickMini !== false;
 }
 window.widget?.getSettings?.().then(applySettings);
 window.widget?.onSettings?.(applySettings);
@@ -315,7 +317,7 @@ function layoutArc() {
   arcTarget = Math.max(0, Math.min(n - 1, arcTarget));
   START += (startT - START) * .08;
   { const now = performance.now(), dt = Math.min(.05, (now - (layoutArc._t || now)) / 1000); layoutArc._t = now;   // yenileme hızından bağımsız
-    const d = (listClosed ? 1 : 0) - fold; fold += Math.sign(d) * Math.min(Math.abs(d), dt / .9); }   // ~0.9 sn
+    const d = (listClosed ? 1 : 0) - fold; fold += Math.sign(d) * Math.min(Math.abs(d), dt / foldTime); }   // ayarlardan
   arcPos += (arcTarget - arcPos) * (returning ? backK : smoothK);
   if (returning && Math.abs(arcPos) < .005) returning = false;
   const D = $('disc').offsetWidth, R = D / 2 + 26;

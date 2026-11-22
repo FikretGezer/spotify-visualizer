@@ -136,6 +136,10 @@
         <div class="ico">🔄</div><div class="lbl"><b>Disk dönsün</b><small>Şarkı çalarken plak gibi döner</small></div>
         <label class="tg"><input type="checkbox" data-k="spin"><span></span></label>
       </div>
+      <div class="row">
+        <div class="ico">🔘</div><div class="lbl"><b>Tıklayınca küçült</b><small>Kapalıysa diske tıklamak onu küçültmez</small></div>
+        <label class="tg"><input type="checkbox" data-k="clickMini"><span></span></label>
+      </div>
     </section>
 
     <section>
@@ -146,6 +150,8 @@
         <div class="sl"><input type="range" data-k="backSpeed" min="1" max="20" step="1"><output data-o="backSpeed"></output></div></div>
       <div class="row col"><div class="top"><div class="ico">🎞️</div><div class="lbl"><b>Kaydırma yumuşaklığı</b><small>Düşük = daha yavaş ve akışkan</small></div></div>
         <div class="sl"><input type="range" data-k="smooth" min="4" max="30" step="1"><output data-o="smooth"></output></div></div>
+      <div class="row col"><div class="top"><div class="ico">🌸</div><div class="lbl"><b>Aç / kapa hızı</b><small>Liste yapraklarının katlanıp açılma süresi</small></div></div>
+        <div class="sl"><input type="range" data-k="foldTime" min="0.3" max="3" step="0.1"><output data-o="foldTime"></output></div></div>
     </section>
 
     <section>
@@ -191,6 +197,7 @@
     opacity: v => v + '%',
     edgeSoft: v => v + 'px',
     dockDelay: v => (+v).toFixed(1) + ' sn',
+    foldTime: v => (+v).toFixed(1) + ' sn',
     vizShade: v => v + '%',
     vizGlow: v => v + '%',
     vizCycle: v => +v === 0 ? 'Kapalı' : v + ' sn',

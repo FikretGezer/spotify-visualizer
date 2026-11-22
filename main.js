@@ -6,7 +6,7 @@ const path = require('path');
 const PORT = 8888;
 const BASE = `http://127.0.0.1:${PORT}/`;
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.png': 'image/png' };
-const DEFAULTS = { alwaysOnTop: true, discSize: 240, bgOpacity: 90, spin: true, backDelay: 3, smooth: 12, backSpeed: 4, glow: 100, edgeSoft: 6, dockDelay: 1.2, opacity: 100, vizMode: 'Halka', vizCycle: 0, lyrics: true, vizClear: false, vizShade: 70, vizGlow: 100 };
+const DEFAULTS = { alwaysOnTop: true, discSize: 240, bgOpacity: 90, spin: true, backDelay: 3, smooth: 12, backSpeed: 4, glow: 100, edgeSoft: 6, dockDelay: 1.2, opacity: 100, vizMode: 'Halka', vizCycle: 0, lyrics: true, vizClear: false, vizShade: 70, vizGlow: 100, foldTime: 0.9, clickMini: true };
 const widgetSize = () => ({ w: 320 + 450, h: 320 + 470 });   // altta oynatıcı için de yer var   // sabit (en büyük disk) → boyut değişince pencere zıplamaz
 
 // tek kopya çalışsın
