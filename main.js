@@ -229,7 +229,16 @@ app.whenReady().then(async () => {
     if (dock && !dragT) {
       // dışarı kayma sadece disk üstündeyken başlar; açıldıktan sonra widget'ın herhangi bir yerinde durmak açık tutar
       if (id !== 'disc' && !peeking && Date.now() > peekBusy) rearm = true;
-      if ((id === 'disc' && rearm) || (peeking && id)) { clearTimeout(peekT); peekT = null; if (!peeking) { peeking = true; setPeek(true); } }
+      // oynatıcı açıkken oynatıcı ile disk arasındaki boşluk da açık tutsun
+      let gap = false;
+      if (peeking && !id) {
+        const pl = hitRects.find(r => r[5] === 'player'), dc = hitRects.find(r => r[5] === 'disc');
+        if (pl && dc && pl[2] > 0) {
+          const L = Math.min(pl[0], dc[0]), T = Math.min(pl[1], dc[1]), R = Math.max(pl[0] + pl[2], dc[0] + dc[2]), B = Math.max(pl[1] + pl[3], dc[1] + dc[3]);
+          gap = x >= L && x <= R && y >= T && y <= B;
+        }
+      }
+      if ((id === 'disc' && rearm) || (peeking && (id || gap))) { clearTimeout(peekT); peekT = null; if (!peeking) { peeking = true; setPeek(true); } }
       else if (peeking && !peekT) peekT = setTimeout(() => { peekT = null; if (!dock) return; peeking = false; rearm = false; widget.webContents.send('closePlayer'); setPeek(false); }, (cfg.dockDelay ?? 1.2) * 1000);
     }
   }, 30);
