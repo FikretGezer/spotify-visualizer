@@ -356,7 +356,8 @@ function layoutArc() {
   const onDisc = (x, y) => { const r = $('disc').getBoundingClientRect(); return Math.hypot(x - r.left - r.width / 2, y - r.top - r.height / 2) <= r.width / 2; };
   hit.addEventListener('mousedown', e => { if (e.button === 1) e.preventDefault(); });   // orta tuş otomatik kaydırma ikonu çıkmasın
   hit.addEventListener('pointerdown', e => { if (e.button > 1) return;
-    if (e.button === 0 && onDisc(e.clientX, e.clientY)) { if (WIDGET && window.__discDown) window.__discDown(e); return; }   // disk üstünde: liste değil disk hit.classList.add('active'); btn = e.button; cancelBack(); y0 = e.clientY; t0 = arcTarget; arcMoved = false; hit.setPointerCapture(e.pointerId); });
+    if (e.button === 0 && onDisc(e.clientX, e.clientY)) { if (WIDGET && window.__discDown) window.__discDown(e); return; }   // disk üstünde: liste değil disk
+    hit.classList.add('active'); btn = e.button; cancelBack(); y0 = e.clientY; t0 = arcTarget; arcMoved = false; hit.setPointerCapture(e.pointerId); });
   hit.addEventListener('pointermove', e => {
     if (y0 !== null) {
       const dy = e.clientY - y0; if (btn === 1 && Math.abs(dy) > 6) arcMoved = true;
