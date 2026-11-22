@@ -215,8 +215,13 @@ body.bg canvas{clip-path:circle(0% at var(--rx,50%) var(--ry,50%));opacity:0;tra
 body.bg.shown canvas{clip-path:circle(150% at var(--rx,50%) var(--ry,50%));opacity:1}
 body.bg.hiding canvas{transition:clip-path .7s cubic-bezier(.6,0,.4,1),opacity .7s ease .1s}
   /* beğen / listeye ekle */
-  body.widget #times{padding:0 22px}
-  #lib{position:absolute;left:8px;bottom:16px;display:flex;flex-direction:column;gap:6px}
+  #nowitem>div{white-space:nowrap}
+  #queue #nowitem>div::before{display:inline-block!important;vertical-align:middle}
+  #lib{display:inline-flex;vertical-align:middle;gap:2px;margin-left:6px;opacity:var(--lab,0);height:calc(var(--lab,0) * 20px);overflow:visible;pointer-events:auto}
+  #lib *{pointer-events:auto}
+  #lib button{width:20px!important;height:20px!important;color:#ffffffc0;position:relative}
+  #lib svg{width:13px!important;height:13px!important}
+  #lib button.hov{background:#ffffff26;color:#fff}
   body.widget #player{overflow:visible}
   #lib button{background:none;width:26px;height:26px;padding:0;border-radius:50%;display:grid;place-items:center;color:#ffffffa0;transition:transform .15s,color .2s,background .2s}
   #lib button:hover{background:#ffffff1a;color:#fff}
@@ -224,8 +229,28 @@ body.bg.hiding canvas{transition:clip-path .7s cubic-bezier(.6,0,.4,1),opacity .
   #lib svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2}
   #addpl svg{fill:currentColor;stroke:none}
   #like.on{color:#1ed760}
-  #like.on svg{fill:currentColor;animation:likepop .35s ease}
-  @keyframes likepop{40%{transform:scale(1.35)}}
+  #like.on svg{fill:currentColor}
+  /* mini buton animasyonları */
+  .a-pop svg{animation:aPop .42s cubic-bezier(.3,1.6,.5,1)}
+  @keyframes aPop{30%{transform:scale(.6)}65%{transform:scale(1.3)}}
+  .a-burst::after{content:"";position:absolute;inset:-2px;border-radius:50%;border:2px solid #1ed760;animation:aBurst .5s ease-out forwards;pointer-events:none}
+  @keyframes aBurst{from{transform:scale(.5);opacity:1}to{transform:scale(1.9);opacity:0}}
+  .a-shuf svg{animation:aShuf .45s ease}
+  @keyframes aShuf{50%{transform:scaleX(-1) scale(1.15)}}
+  .a-rep svg{animation:aRep .55s cubic-bezier(.4,1.4,.5,1)}
+  @keyframes aRep{to{transform:rotate(360deg)}}
+  .a-pp svg{animation:aPP .35s cubic-bezier(.3,1.5,.5,1)}
+  @keyframes aPP{from{transform:scale(.3) rotate(-90deg);opacity:0}}
+  .a-pp{animation:aPPb .35s ease}
+  @keyframes aPPb{40%{box-shadow:0 0 0 8px #ffffff22}}
+  .a-prev svg{animation:aPrev .35s ease}
+  @keyframes aPrev{40%{transform:translateX(-5px)}}
+  .a-next svg{animation:aNext .35s ease}
+  @keyframes aNext{40%{transform:translateX(5px)}}
+  .a-add svg{animation:aAdd .45s cubic-bezier(.3,1.5,.5,1)}
+  @keyframes aAdd{to{transform:rotate(180deg)}}
+  .a-mute svg{animation:aPop .4s ease}
+  #ctl button,#mute,#lib button{position:relative}
   #addpl.ok{color:#1ed760}
   #plpop{position:absolute;left:calc(100% + 56px);top:50%;width:240px;transform:translateY(-50%) translateX(-10px) scale(.97);opacity:0;pointer-events:none;transition:opacity .22s,transform .25s cubic-bezier(.2,.9,.3,1.2);
     background:linear-gradient(160deg,rgba(28,28,38,.92),rgba(10,10,16,.9));backdrop-filter:blur(18px);border:1px solid #ffffff22;border-radius:14px;padding:6px;box-sizing:border-box;z-index:20}
@@ -262,14 +287,13 @@ body.bg.hiding canvas{transition:clip-path .7s cubic-bezier(.6,0,.4,1),opacity .
     <div id="disc"><img id="art" crossorigin="anonymous" alt=""></div>
     <button id="minBtn" title="Oynatıcıyı aç/kapat"><span>▲</span></button>
     <ul id="queue">
-      <li id="nowitem"><img id="npimg" alt=""><div><b id="title"></b><span id="artist"></span></div></li>
+      <li id="nowitem"><img id="npimg" alt=""><div><nav id="lib"><button id="like" title="Beğenilenlere ekle"><svg viewBox="0 0 24 24"><path d="M12 21s-7.5-4.6-10-9.3C.4 8.4 2.3 4.5 6 4.5c2.1 0 3.4 1.1 4 2.2.6-1.1 1.9-2.2 4-2.2 3.7 0 5.6 3.9 4 7.2C19.5 16.4 12 21 12 21z"/></svg></button><button id="addpl" title="Çalma listesine ekle"><svg viewBox="0 0 24 24"><path d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6z"/></svg></button></nav><b id="title"></b><span id="artist"></span></div></li>
     </ul>
     <div id="arcHit"></div>
   </div>
   <div id="player">
     <div id="bar" title="Tıkla veya sürükle"><div id="prog"></div></div>
     <div id="times"><span id="cur">0:00</span><span id="dur">0:00</span></div>
-    <span id="lib"><button id="like" title="Beğenilenlere ekle"><svg viewBox="0 0 24 24"><path d="M12 21s-7.5-4.6-10-9.3C.4 8.4 2.3 4.5 6 4.5c2.1 0 3.4 1.1 4 2.2.6-1.1 1.9-2.2 4-2.2 3.7 0 5.6 3.9 4 7.2C19.5 16.4 12 21 12 21z"/></svg></button><button id="addpl" title="Çalma listesine ekle"><svg viewBox="0 0 24 24"><path d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6z"/></svg></button></span>
     <div id="plpop"><div id="plhead">Listeye ekle</div><div id="pllist"></div></div>
     <div id="ctl">
       <button id="shuf" class="tog" title="Karıştır"><svg viewBox="0 0 24 24"><path d="M10.6 9.2 5.4 4 4 5.4l5.2 5.2 1.4-1.4zM14.5 4l2 2L4 18.6 5.4 20 18 7.5l2 2V4h-5.5zm.3 9.4-1.4 1.4 3.1 3.1-2 2H20v-5.5l-2 2-3.2-3z"/></svg></button>

@@ -365,6 +365,9 @@ function layoutArc() {
     }
     const li = arcMoved || onDisc(e.clientX, e.clientY) ? null : liAt(e.clientX, e.clientY);
     if (li !== hov) { hov?.classList.remove('hover'); li?.classList.add('hover'); hov = li; }
+    const lb = y0 === null ? document.elementsFromPoint(e.clientX, e.clientY).map(x => x.closest('#lib button')).find(Boolean) : null;
+    document.querySelectorAll('#lib button').forEach(b => b.classList.toggle('hov', b === lb));
+    if (lb) { hov?.classList.remove('hover'); hov = null; hit.style.cursor = 'pointer'; return; }
     hit.style.cursor = y0 !== null && arcMoved ? 'grabbing' : (li && li.id !== 'nowitem') || (!li && onDisc(e.clientX, e.clientY)) ? 'pointer' : 'default';
   });
   const end = e => {
@@ -373,6 +376,8 @@ function layoutArc() {
     arcTarget = Math.round(arcTarget);
     if (arcMoved) scheduleBack();
     if (!arcMoved && btn === 0) {
+      const lb = document.elementsFromPoint(e.clientX, e.clientY).map(x => x.closest('#lib button')).find(Boolean);
+      if (lb && +getComputedStyle($('lib')).opacity > .5) { lb.click(); arcMoved = false; return; }   // şimdi çalıyor yanındaki ♥ / +
       const li = onDisc(e.clientX, e.clientY) ? null : liAt(e.clientX, e.clientY);
       if (li && li.onclick) li.onclick();
       else if (onDisc(e.clientX, e.clientY) && $('disc').onclick) $('disc').onclick();   // diskin sağ yarısı bu alanın altında kalıyor
@@ -786,6 +791,7 @@ async function addTo(pl, row) {
 $('addpl').onclick = async e => {
   e.stopPropagation();
   if (document.body.classList.contains('plopen')) return plClose();
+  if (!$('left').classList.contains('open')) setOpen(true);   // menü oynatıcının yanında açılır
   const L = $('pllist'); L.innerHTML = '<div id="plin"><div class="note">Yükleniyor…</div></div><div id="plsb"><b></b></div>'; plY = plT = 0; document.body.classList.add('plopen');
   if (!me) { const r = await web('GET', '/me'); if (r && r.ok) me = (await r.json()).id; }
   // tüm sayfaları çek (50'den fazla liste olabilir)
@@ -813,4 +819,15 @@ function plRender() {
   plRaf = plY !== plT ? requestAnimationFrame(plRender) : 0;
 }
 $('pllist').addEventListener('wheel', e => { e.preventDefault(); e.stopPropagation(); plT += (e.deltaMode === 1 ? e.deltaY * 33 : e.deltaY) * .9; if (!plRaf) plRender(); }, { passive: false });
-addEventListener('pointerdown', e => { if (!e.target.closest('#plpop, #addpl')) plClose(); });
+addEventListener('pointerdown', e => { if (!document.elementsFromPoint(e.clientX, e.clientY).some(x => x.closest('#plpop, #addpl'))) plClose(); });
+
+// mini buton animasyonları
+{
+  const bump = (el, c) => { el.classList.remove(c); void el.offsetWidth; el.classList.add(c); clearTimeout(el._bt); el._bt = setTimeout(() => el.classList.remove(c), 600); };
+  const A = { like: 'a-pop', addpl: 'a-add', shuf: 'a-shuf', rep: 'a-rep', pp: 'a-pp', prev: 'a-prev', next: 'a-next', mute: 'a-mute' };
+  for (const [id, c] of Object.entries(A)) $(id)?.addEventListener('click', () => {
+    bump($(id), c);
+    if (id === 'like' && !liked) return;   // tıklama sırası: like onclick önce çalışır → liked yeni durum
+    if (id === 'like') bump($(id), 'a-burst');
+  });
+}
