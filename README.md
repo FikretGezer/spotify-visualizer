@@ -14,7 +14,11 @@
 
 A floating Spotify widget for your desktop. The cover of the current track spins like a vinyl record, and your queue fans out around it like flower petals. Tuck it into a screen edge, or turn the whole screen into a visualizer that moves with your music. Clicks on empty areas pass through to the windows below, so the widget never gets in your way.
 
-## Install and run
+## Download (Windows, no Node.js needed)
+
+Get **`SpotifyVisualizer-win32-x64.zip`** from the [latest release](https://github.com/FikretGezer/spotify-visualizer/releases/latest), unzip it, put your Spotify Client ID into `resourcespp\config.js` (steps below, step 2 and 4), and run `SpotifyVisualizer.exe`.
+
+## Install and run from source
 
 1. Install **Node.js 18+** from [nodejs.org](https://nodejs.org).
 2. Create an app in the [Spotify Developer Dashboard](https://developer.spotify.com/dashboard):

@@ -14,7 +14,11 @@
 
 Masaüstünde yüzen bir Spotify widget'ı. Ortada çalan şarkının kapağıyla dönen bir plak var, sıradaki şarkılar çiçek yaprağı gibi etrafına diziliyor. İstersen ekran kenarına gömülüyor, istersen tüm ekranı müziğe göre oynayan bir visualizer'a çeviriyor. Boş alanlara yapılan tıklamalar alttaki pencerelere gidiyor, yani widget işini engellemiyor.
 
-## Kurulum ve çalıştırma
+## İndir (Windows, Node.js gerekmez)
+
+[Son sürümden](https://github.com/FikretGezer/spotify-visualizer/releases/latest) **`SpotifyVisualizer-win32-x64.zip`** dosyasını indir, aç, Spotify Client ID'ni `resourcespp\config.js` içine yaz (aşağıda 2. ve 4. adım) ve `SpotifyVisualizer.exe`'yi çalıştır.
+
+## Kaynaktan kurulum ve çalıştırma
 
 1. Bilgisayarda **Node.js 18+** yüklü olmalı. [nodejs.org](https://nodejs.org) adresinden indirebilirsin.
 2. [Spotify Developer Dashboard](https://developer.spotify.com/dashboard)'da bir uygulama oluştur:
