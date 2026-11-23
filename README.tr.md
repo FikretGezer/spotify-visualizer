@@ -16,7 +16,7 @@ Masaüstünde yüzen bir Spotify widget'ı. Ortada çalan şarkının kapağıyl
 
 ## İndir (Windows, Node.js gerekmez)
 
-[Son sürümden](https://github.com/FikretGezer/spotify-visualizer/releases/latest) **`SpotifyVisualizer-win32-x64.zip`** dosyasını indir, aç, Spotify Client ID'ni `resourcespp\config.js` içine yaz (aşağıda 2. ve 4. adım) ve `SpotifyVisualizer.exe`'yi çalıştır.
+[Son sürümden](https://github.com/FikretGezer/spotify-visualizer/releases/latest) **`SpotifyVisualizer-win32-x64.zip`** dosyasını indir, aç, Spotify Client ID'ni `resources\app\config.js` içine yaz (aşağıda 2. ve 4. adım) ve `SpotifyVisualizer.exe`'yi çalıştır.
 
 ## Kaynaktan kurulum ve çalıştırma
 

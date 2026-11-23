@@ -16,7 +16,7 @@ A floating Spotify widget for your desktop. The cover of the current track spins
 
 ## Download (Windows, no Node.js needed)
 
-Get **`SpotifyVisualizer-win32-x64.zip`** from the [latest release](https://github.com/FikretGezer/spotify-visualizer/releases/latest), unzip it, put your Spotify Client ID into `resourcespp\config.js` (steps below, step 2 and 4), and run `SpotifyVisualizer.exe`.
+Get **`SpotifyVisualizer-win32-x64.zip`** from the [latest release](https://github.com/FikretGezer/spotify-visualizer/releases/latest), unzip it, put your Spotify Client ID into `resources\app\config.js` (steps below, step 2 and 4), and run `SpotifyVisualizer.exe`.
 
 ## Install and run from source
 
